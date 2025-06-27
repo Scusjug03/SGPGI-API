@@ -44,9 +44,9 @@ namespace UPSWCAPI.Controllers
         }
 
 
-        #region CourtTypeMaster
-        [HttpPost("InsertCourtTypeMaster")]
-        public async Task<IActionResult> InsertCourtTypeMaster([FromBody] CourtTypeMaster model)
+        #region CourtMaster
+        [HttpPost("InsertCourtMaster")]
+        public async Task<IActionResult> InsertCourtMaster([FromBody] CourtMaster model)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpPut("UpdateCourtType")]
-        public async Task<IActionResult> UpdateCourtType([FromBody] CourtTypeMaster model)
+        public async Task<IActionResult> UpdateCourtType([FromBody] CourtMaster model)
         {
             try
             {
@@ -96,8 +96,8 @@ namespace UPSWCAPI.Controllers
             }
         }
 
-        [HttpGet("GetCourtTypeMasterById/{id}")]
-        public async Task<IActionResult> GetCourtTypeMasterById(int id)
+        [HttpGet("GetCourtMasterById/{id}")]
+        public async Task<IActionResult> GetCourtMasterById(int id)
         {
             try
             {
@@ -148,8 +148,8 @@ namespace UPSWCAPI.Controllers
             }
         }
 
-        [HttpDelete("DeleteCourtTypeMaster/{id}")]
-        public async Task<IActionResult> DeleteCourtTypeMaster(int id)
+        [HttpDelete("DeleteCourtMaster/{id}")]
+        public async Task<IActionResult> DeleteCourtMaster(int id)
         {
             try
             {
@@ -175,5 +175,270 @@ namespace UPSWCAPI.Controllers
             }
         }
         #endregion
+
+        #region CourtTypeMaster
+        [HttpPost("InsertCourtTypeMaster")]
+        public async Task<IActionResult> InsertCourtTypeMaster([FromBody] CourtTypeMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@CourtTypeId", model.CourtTypeId);
+                parameters.Add("@CourtName", model.CourtName ?? string.Empty);
+                parameters.Add("@Address", model.Address ?? string.Empty);
+                parameters.Add("@ShortName", model.ShortName ?? string.Empty);
+                parameters.Add("@UserId", model.CreatedBy);
+
+                var result = await connection.QueryAsync("[dbo].[sp_CourtMaster]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateCourtTypeMaster")]
+        public async Task<IActionResult> UpdateCourtTypeMaster([FromBody] CourtTypeMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@CourtId", model.CourtId);
+                parameters.Add("@CourtTypeId", model.CourtTypeId);
+                parameters.Add("@CourtName", model.CourtName ?? string.Empty);
+                parameters.Add("@Address", model.Address ?? string.Empty);
+                parameters.Add("@ShortName", model.ShortName ?? string.Empty);
+                parameters.Add("@UserId", model.UpdatedBy);
+
+                var result = await connection.QueryAsync("[dbo].[sp_CourtMaster]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetCourtTypeMasterById/{id}")]
+        public async Task<IActionResult> GetCourtTypeMasterById(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@CourtId", id);
+                parameters.Add("@CourtTypeId", 0);
+                parameters.Add("@CourtName", string.Empty);
+                parameters.Add("@Address", string.Empty);
+                parameters.Add("@ShortName", string.Empty);
+                parameters.Add("@UserId", 0);
+
+                var result = await connection.QueryAsync("[dbo].[sp_CourtMaster]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllCourtTypeMasterCase")]
+        public async Task<IActionResult> GetAllCourtTypeMasterCase()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+                parameters.Add("@CourtId", 0);
+                parameters.Add("@CourtTypeId", 0);
+                parameters.Add("@CourtName", string.Empty);
+                parameters.Add("@Address", string.Empty);
+                parameters.Add("@ShortName", string.Empty); 
+                parameters.Add("@UserId", 0);
+
+                var result = await connection.QueryAsync("[dbo].[sp_CourtMaster]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteCourtTypeMaster/{id}")]
+        public async Task<IActionResult> DeleteCourtTypeMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@CourtId", id);
+                parameters.Add("@CourtTypeId", 0);
+                parameters.Add("@CourtName", string.Empty);
+                parameters.Add("@Address", string.Empty);
+                parameters.Add("@ShortName", string.Empty);
+                parameters.Add("@UserId", 0);
+                await connection.ExecuteAsync("[dbo].[sp_CourtMaster]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, message = "Court deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region CaseTypeMaster
+
+        [HttpPost("InsertCaseTypeMaster")]
+        public async Task<IActionResult> InsertCaseTypeMaster([FromBody] CaseTypeModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@CaseTypeId", model.CaseTypeId);
+                parameters.Add("@CourtTypeID", model.CourtTypeID);
+                parameters.Add("@CaseType", model.CaseType ?? string.Empty);
+                parameters.Add("@ShortName", model.ShortName ?? string.Empty);
+                parameters.Add("@Remark", model.Remarks ?? string.Empty);
+
+                var result = await connection.QueryAsync("[dbo].[sp_M_caseType]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateCaseTypeMaster")]
+        public async Task<IActionResult> UpdateCaseTypeMaster([FromBody] CaseTypeModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@CaseTypeId", model.CaseTypeId);
+                parameters.Add("@CourtTypeID", model.CourtTypeID);
+                parameters.Add("@CaseType", model.CaseType ?? string.Empty);
+                parameters.Add("@ShortName", model.ShortName ?? string.Empty);
+                parameters.Add("@Remark", model.Remarks ?? string.Empty);
+
+                var result = await connection.QueryAsync("[dbo].[sp_M_caseType]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetCaseTypeMasterById/{id}")]
+        public async Task<IActionResult> GetCaseTypeMasterById(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@CaseTypeId", id);
+
+                // Don't add these unless they're required for ProcId=3
+                // parameters.Add("@CourtTypeID", 0);
+                // parameters.Add("@CaseType", string.Empty);
+                // parameters.Add("@ShortName", string.Empty);
+                // parameters.Add("@Remark", string.Empty);
+
+                var result = await connection.QueryAsync("[dbo].[sp_M_caseType]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("GetAllCaseTypeMaster")]
+        public async Task<IActionResult> GetAllCaseTypeMaster()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+                parameters.Add("@CaseTypeId", 0);
+                parameters.Add("@CourtTypeID", 0);
+                parameters.Add("@CaseType", string.Empty);
+                parameters.Add("@ShortName", string.Empty);
+                parameters.Add("@Remark", string.Empty);
+
+                var result = await connection.QueryAsync("[dbo].[sp_M_caseType]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteCaseTypeMaster/{id}")]
+        public async Task<IActionResult> DeleteCaseTypeMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@CaseTypeId", id);
+                parameters.Add("@CourtTypeID", 0);
+                parameters.Add("@CaseType", string.Empty);
+                parameters.Add("@ShortName", string.Empty);
+                parameters.Add("@Remark", string.Empty);
+
+                await connection.ExecuteAsync("[dbo].[sp_M_caseType]", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, message = "Case Type deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+
     }
 }

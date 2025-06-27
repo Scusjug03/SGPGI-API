@@ -708,7 +708,7 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
-                parameters.Add("@ProcId", 3);
+                parameters.Add("@ProcId", 6);
                 parameters.Add("@ModuleId", 0);
                 parameters.Add("@ProjectId", 0);
                 parameters.Add("@ModuleName", string.Empty);
@@ -773,6 +773,152 @@ namespace UPSWCAPI.Controllers
 
                 var data = await connection.QueryAsync("dbo.Proc_ModuleMaster", parameters, commandType: CommandType.StoredProcedure);
                 return Ok(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+
+        #region MenuMaster
+
+        [HttpPost("InsertMenuMaster")]
+        public async Task<IActionResult> InsertMenuMaster([FromBody] MenuMasterModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@MenuId", 0);
+                parameters.Add("@ProjectId", model.ProjectId);
+                parameters.Add("@ModuleId", model.ModuleId);
+                parameters.Add("@MenuName", model.MenuName);
+                parameters.Add("@RouterLink", model.RouterLink ?? "");
+                parameters.Add("@UserTypeId", model.UserTypeId);
+                parameters.Add("@RoleTypeId", model.RoleTypeId);
+                parameters.Add("@EmpId", 0);
+
+                var result = await connection.QueryAsync("dbo.Proc_MenuMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateMenuMaster")]
+        public async Task<IActionResult> UpdateMenuMaster([FromBody] MenuMasterModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@MenuId", model.MenuId);
+                parameters.Add("@ProjectId", model.ProjectId);
+                parameters.Add("@ModuleId", model.ModuleId);
+                parameters.Add("@MenuName", model.MenuName);
+                parameters.Add("@RouterLink", model.RouterLink ?? "");
+                parameters.Add("@UserTypeId", model.UserTypeId);
+                parameters.Add("@RoleTypeId", model.RoleTypeId);
+                parameters.Add("@EmpId", 0);
+
+                var result = await connection.QueryAsync("dbo.Proc_MenuMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteMenuMaster/{id}")]
+        public async Task<IActionResult> DeleteMenuMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@MenuId", id);
+                parameters.Add("@ProjectId", 0);
+                parameters.Add("@ModuleId", 0);
+                parameters.Add("@MenuName", "");
+                parameters.Add("@RouterLink", "");
+                parameters.Add("@UserTypeId", 0);
+                parameters.Add("@RoleTypeId", 0);
+                parameters.Add("@EmpId", 0);
+
+                await connection.ExecuteAsync("dbo.Proc_MenuMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, message = "Menu deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllMenuMasters")]
+        public async Task<IActionResult> GetAllMenuMasters()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@MenuId", 0);
+                parameters.Add("@ProjectId", 0);
+                parameters.Add("@ModuleId", 0);
+                parameters.Add("@MenuName", "");
+                parameters.Add("@RouterLink", "");
+                parameters.Add("@UserTypeId", 0);
+                parameters.Add("@RoleTypeId", 0);
+                parameters.Add("@EmpId", 0);
+
+                var data = await connection.QueryAsync("dbo.Proc_MenuMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetMenuMastersByRole/{empId}/{moduleId}")]
+        public async Task<IActionResult> GetMenuMastersByRole(int empId, int moduleId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 7);
+                parameters.Add("@EmpId", empId);
+                parameters.Add("@ModuleId", moduleId);
+                parameters.Add("@MenuId", 0);
+                parameters.Add("@ProjectId", 0);
+                parameters.Add("@MenuName", "");
+                parameters.Add("@RouterLink", "");
+                parameters.Add("@MenuStatus", "N");
+                parameters.Add("@UserTypeId", 0);
+                parameters.Add("@RoleTypeId", 0);
+
+                var result = await connection.QueryAsync("dbo.Proc_MenuMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
             }
             catch (Exception ex)
             {
