@@ -29,4 +29,46 @@
         public string ShortName { get; set; } = string.Empty;
         public string Remarks { get; set; } = string.Empty;  
     }
+    public class SubjectMaster
+    {
+        public int SubjectMatterID { get; set; }
+        public string SubjectCode { get; set; } = string.Empty;
+        public string SubjectMatters { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int UserId { get; set; }
+    }
+
+    public class SectionMaster
+    {
+        public int SectionId { get; set; }
+        public string SectionName { get; set; } = string.Empty;
+        public string ShortName { get; set; } = string.Empty;
+        public int CreatedBy { get; set; }
+        public int UpdatedBy { get; set; }
+        public int ProcId { get; set; }
+    }
+
+    public class DocumentMaster
+    {
+        public int DocumentId { get; set; }
+        public string DocumentCode { get; set; } = string.Empty;
+        public string DocumentDetails { get; set; } = string.Empty;
+        public int UserId { get; set; }
+    }
+
+    public class EvidenceMaster
+    {
+        public int EvidenceId { get; set; }
+        public string EvidenceCode { get; set; } = string.Empty;
+        public string EvidenceDetails { get; set; } = string.Empty;
+        public int UserId { get; set; }
+    }
+
+    public class GovDepartment
+    {
+        public int GovDeptID { get; set; }
+        public string GovDepart { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int UserId { get; set; }
+    }
 }

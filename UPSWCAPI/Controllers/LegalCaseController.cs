@@ -439,6 +439,578 @@ namespace UPSWCAPI.Controllers
 
         #endregion
 
+        #region SubjectMaster
+        [HttpPost("InsertSubjectMaster")]
+        public async Task<IActionResult> InsertSubjectMaster([FromBody] SubjectMaster model)
+        {
+            try
+            {
+                using var _connection = _context.Database.GetDbConnection();
+                await _connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@SubjectMatterID", model.SubjectMatterID);
+                parameters.Add("@SubjectCode", model.SubjectCode);
+                parameters.Add("@SubjectMatters", model.SubjectMatters);
+                parameters.Add("@Description", model.Description);
+                parameters.Add("@UserId", model.UserId);
 
+                var result = await _connection.QueryAsync("PROC_SubjectMatter", parameters, commandType: CommandType.StoredProcedure);
+                
+                return Ok(new { success = true, message = "Inserted", data = result });
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("SubjectMasterUpdate")]
+        public async Task<IActionResult> SubjectMasterUpdates([FromBody] SubjectMaster model)
+        {
+            try
+            {
+                using var _connection = _context.Database.GetDbConnection();
+                await _connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@SubjectMatterID", model.SubjectMatterID);
+                parameters.Add("@SubjectCode", model.SubjectCode);
+                parameters.Add("@SubjectMatters", model.SubjectMatters);
+                parameters.Add("@Description", model.Description);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await _connection.QueryAsync("PROC_SubjectMatter", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, message = "Updated", data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetByIdSubjectMaster/{id}")]
+        public async Task<IActionResult> GetByIdSubjectMaster(int id)
+        {
+            try
+            {
+                using var _connection = _context.Database.GetDbConnection();
+                await _connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@SubjectMatterID", id);
+
+                var result = await _connection.QueryAsync("PROC_SubjectMatter", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllSubjectMaster")]
+        public async Task<IActionResult> GetAllSubjectMaster()
+        {
+            try
+            {
+                using var _connection = _context.Database.GetDbConnection();
+                await _connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+
+                var result = await _connection.QueryAsync("PROC_SubjectMatter", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("SubjectMasterDelete/{id}")]
+        public async Task<IActionResult> SubjectMasterDelete(int id)
+        {
+            try
+            {
+                using var _connection = _context.Database.GetDbConnection();
+                await _connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@SubjectMatterID", id);
+
+                await _connection.ExecuteAsync("PROC_SubjectMatter", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, message = "Deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+         
+        #region SectionMaster
+        [HttpPost("InsertSectionMaster")]
+        public async Task<IActionResult> InsertSectionMaster([FromBody] SectionMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+            await connection.OpenAsync();
+            var parameters = new DynamicParameters();
+            parameters.Add("@Procid", 1);
+            parameters.Add("@SectionId", 0);
+            parameters.Add("@SectionName", model.SectionName);
+            parameters.Add("@ShortName", model.ShortName);
+            parameters.Add("@CreatedBy", model.CreatedBy);
+            parameters.Add("@UpdatedBy", 0);
+            var result = await connection.QueryAsync("SP_SectionMaster", parameters, commandType: CommandType.StoredProcedure);
+            return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("UpdateSectionMaster")]
+        public async Task<IActionResult> UpdateSectionMaster([FromBody] SectionMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+            await connection.OpenAsync();
+            var parameters = new DynamicParameters();
+            parameters.Add("@Procid", 2);
+            parameters.Add("@SectionId", model.SectionId);
+            parameters.Add("@SectionName", model.SectionName);
+            parameters.Add("@ShortName", model.ShortName);
+            parameters.Add("@CreatedBy", 0);
+            parameters.Add("@UpdatedBy", model.UpdatedBy);
+            var result = await connection.QueryAsync("SP_SectionMaster", parameters, commandType: CommandType.StoredProcedure);
+            return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllSectionMaster")]
+
+        public async Task<IActionResult> GetAllSectionMaster()
+        {
+            try
+            {
+                using var _connection = _context.Database.GetDbConnection();
+                await _connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@SectionId", 0);
+                parameters.Add("@SectionName", "");
+                parameters.Add("@ShortName", "");
+                parameters.Add("@CreatedBy", 0);
+                parameters.Add("@UpdatedBy", 0);
+                parameters.Add("@ProcId", 4);
+
+                var result = await _connection.QueryAsync("SP_SectionMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+        
+
+        [HttpGet("GetByIdSectionMaster/{id}")]
+        public async Task<IActionResult> GetByIdSectionMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+            await connection.OpenAsync();
+            var parameters = new DynamicParameters();
+            parameters.Add("@Procid", 3);
+            parameters.Add("@SectionId", id);
+            var result = await connection.QueryAsync("SP_SectionMaster", parameters, commandType: CommandType.StoredProcedure);
+            return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteSectionMaster/{id}")]
+        public async Task<IActionResult> DeleteSectionMaster(int id)
+        {
+            try
+            {
+               using var connection = _context.Database.GetDbConnection();
+            await connection.OpenAsync();
+            var parameters = new DynamicParameters();
+            parameters.Add("@Procid", 5);
+            parameters.Add("@SectionId", id);
+            var result = await connection.QueryAsync("SP_SectionMaster", parameters, commandType: CommandType.StoredProcedure);
+            return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+         
+        #region DocumentMaster
+
+        [HttpPost("InsertDocumentMaster")]
+        public async Task<IActionResult> InsertDocumentMaster([FromBody] DocumentMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 1);
+                parameters.Add("@DocumentId", 0);
+                parameters.Add("@DocumentCode", model.DocumentCode);
+                parameters.Add("@DocumentDetails", model.DocumentDetails);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("PROC_DocumentMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("UpdateDocumentMaster")]
+        public async Task<IActionResult> UpdateDocumentMaster([FromBody] DocumentMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 2);
+                parameters.Add("@DocumentId", model.DocumentId);
+                parameters.Add("@DocumentCode", model.DocumentCode);
+                parameters.Add("@DocumentDetails", model.DocumentDetails);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("PROC_DocumentMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllDocumentMaster")]
+        public async Task<IActionResult> GetAllDocumentMaster()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@DocumentId", 0);
+                parameters.Add("@DocumentCode", "");
+                parameters.Add("@DocumentDetails", "");
+                parameters.Add("@UserId", 0);
+                parameters.Add("@Procid", 4);
+
+                var result = await connection.QueryAsync("PROC_DocumentMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetByIdDocumentMaster/{id}")]
+        public async Task<IActionResult> GetByIdDocumentMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@DocumentId", id);
+                parameters.Add("@Procid", 3);
+
+                var result = await connection.QueryAsync("PROC_DocumentMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteDocumentMaster/{id}")]
+        public async Task<IActionResult> DeleteDocumentMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 5);
+                parameters.Add("@DocumentId", id);
+
+                var result = await connection.QueryAsync("PROC_DocumentMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region EvidenceMaster
+
+        [HttpPost("InsertEvidenceMaster")]
+        public async Task<IActionResult> InsertEvidenceMaster([FromBody] EvidenceMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 1);
+                parameters.Add("@EvidenceId", 0);
+                parameters.Add("@EvidenceCode", model.EvidenceCode);
+                parameters.Add("@EvidenceDetails", model.EvidenceDetails);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("PROC_EvidenceMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("UpdateEvidenceMaster")]
+        public async Task<IActionResult> UpdateEvidenceMaster([FromBody] EvidenceMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 2);
+                parameters.Add("@EvidenceId", model.EvidenceId);
+                parameters.Add("@EvidenceCode", model.EvidenceCode);
+                parameters.Add("@EvidenceDetails", model.EvidenceDetails);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("PROC_EvidenceMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllEvidenceMaster")]
+        public async Task<IActionResult> GetAllEvidenceMaster()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 4);
+                parameters.Add("@EvidenceId", 0);
+
+                var result = await connection.QueryAsync("PROC_EvidenceMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetByIdEvidenceMaster/{id}")]
+        public async Task<IActionResult> GetByIdEvidenceMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 3);
+                parameters.Add("@EvidenceId", id);
+
+                var result = await connection.QueryAsync("PROC_EvidenceMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteEvidenceMaster/{id}")]
+        public async Task<IActionResult> DeleteEvidenceMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 5);
+                parameters.Add("@EvidenceId", id);
+
+                var result = await connection.QueryAsync("PROC_EvidenceMaster", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region GovDepartment
+
+        [HttpPost("InsertGovDepartment")]
+        public async Task<IActionResult> InsertGovDepartment([FromBody] GovDepartment model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 1);
+                parameters.Add("@GovDeptID", 0);
+                parameters.Add("@GovDepart", model.GovDepart);
+                parameters.Add("@Description", model.Description);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("PROC_GovDepartment", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("UpdateGovDepartment")]
+        public async Task<IActionResult> UpdateGovDepartment([FromBody] GovDepartment model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 2);
+                parameters.Add("@GovDeptID", model.GovDeptID);
+                parameters.Add("@GovDepart", model.GovDepart);
+                parameters.Add("@Description", model.Description);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("PROC_GovDepartment", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllGovDepartment")]
+        public async Task<IActionResult> GetAllGovDepartment()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 4);
+                parameters.Add("@GovDeptID", 0);
+
+                var result = await connection.QueryAsync("PROC_GovDepartment", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetByIdGovDepartment/{id}")]
+        public async Task<IActionResult> GetByIdGovDepartment(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 3);
+                parameters.Add("@GovDeptID", id);
+
+                var result = await connection.QueryAsync("PROC_GovDepartment", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteGovDepartment/{id}")]
+        public async Task<IActionResult> DeleteGovDepartment(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 5);
+                parameters.Add("@GovDeptID", id);
+
+                var result = await connection.QueryAsync("PROC_GovDepartment", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
     }
 }
