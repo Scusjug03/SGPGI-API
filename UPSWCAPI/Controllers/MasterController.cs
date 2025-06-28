@@ -926,6 +926,29 @@ namespace UPSWCAPI.Controllers
             }
         }
 
+        [HttpGet("GetOfficeDetailsById/{officeId}")]
+        public async Task<IActionResult> GetOfficeDetailsById(int officeId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var query = "SELECT OfficeId, DivisionId, RegionId FROM Office WHERE OfficeId = @OfficeId";
+                var result = await connection.QueryFirstOrDefaultAsync(query, new { OfficeId = officeId });
+
+                if (result != null)
+                    return Ok(new { success = true, data = result });
+                else
+                    return NotFound(new { success = false, message = "Office not found." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error retrieving office details.", error = ex.Message });
+            }
+        }
+
+
         #endregion
 
 

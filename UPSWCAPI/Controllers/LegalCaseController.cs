@@ -663,8 +663,7 @@ namespace UPSWCAPI.Controllers
         }
 
         #endregion
-
-         
+ 
         #region DocumentMaster
 
         [HttpPost("InsertDocumentMaster")]
@@ -1010,6 +1009,432 @@ namespace UPSWCAPI.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        #endregion
+
+        #region IntrimMaster
+
+        [HttpPost("InsertIntrimMaster")]
+        public async Task<IActionResult> InsertIntrimMaster([FromBody] IntrimMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@InterimOrderId", 0);
+                parameters.Add("@InterimOrder", model.InterimOrder);
+                parameters.Add("@ShortName ", model.ShortName);
+                parameters.Add("@Description", model.Description);
+                parameters.Add("@Procid", 1);
+
+                var result = await connection.QueryAsync("sp_IntrimProc", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("UpdateIntrimMaster")]
+        public async Task<IActionResult> UpdateIntrimMaster([FromBody] IntrimMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@InterimOrderId", model.InterimOrderId);
+                parameters.Add("@InterimOrder", model.InterimOrder);
+                parameters.Add("@ShortName ", model.ShortName);
+                parameters.Add("@Description", model.Description);
+                parameters.Add("@Procid", 2);
+
+                var result = await connection.QueryAsync("sp_IntrimProc", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllIntrimMaster")]
+        public async Task<IActionResult> GetAllIntrimMaster()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 4);
+                parameters.Add("@InterimOrderId", 0);
+
+                var result = await connection.QueryAsync("sp_IntrimProc", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetByIdIntrimMaster/{id}")]
+        public async Task<IActionResult> GetByIdIntrimMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 3);
+                parameters.Add("@InterimOrderId", id);
+
+                var result = await connection.QueryAsync("sp_IntrimProc", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteIntrimMaster/{id}")]
+        public async Task<IActionResult> DeleteIntrimMaster(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Procid", 5);
+                parameters.Add("@InterimOrderId", id);
+
+                var result = await connection.QueryAsync("sp_IntrimProc", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+
+        #endregion
+
+        #region JudgementTypeMaster
+
+        [HttpPost("InsertJudgementType")]
+        public async Task<IActionResult> InsertJudgementType([FromBody] JudgementTypeModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@procid", 1);
+                parameters.Add("@JudgementTypeID", 0);
+                parameters.Add("@JudgementType", model.JudgementType);
+                parameters.Add("@ShortName", model.ShortName);
+                parameters.Add("@Description", model.Description);
+
+                var result = await connection.QueryAsync("sp_JudgementType", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("UpdateJudgementType")]
+        public async Task<IActionResult> UpdateJudgementType([FromBody] JudgementTypeModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@procid", 2);
+                parameters.Add("@JudgementTypeID", model.JudgementTypeID);
+                parameters.Add("@JudgementType", model.JudgementType);
+                parameters.Add("@ShortName", model.ShortName);
+                parameters.Add("@Description", model.Description);
+
+                var result = await connection.QueryAsync("sp_JudgementType", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllJudgementType")]
+        public async Task<IActionResult> GetAllJudgementType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@procid", 4);
+                parameters.Add("@JudgementTypeID", 0);
+                parameters.Add("@JudgementType", "");
+                parameters.Add("@ShortName", "");
+                parameters.Add("@Description", "");
+
+                var result = await connection.QueryAsync("sp_JudgementType", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetByIdJudgementType/{id}")]
+        public async Task<IActionResult> GetByIdJudgementType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@procid", 3);
+                parameters.Add("@JudgementTypeID", id);
+                parameters.Add("@JudgementType", "");  
+                parameters.Add("@ShortName", "");      
+                parameters.Add("@Description", "");    
+
+                var result = await connection.QueryAsync("sp_JudgementType", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpDelete("DeleteJudgementType/{id}")]
+        public async Task<IActionResult> DeleteJudgementType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@procid", 5);
+                parameters.Add("@JudgementTypeID", id);
+                parameters.Add("@JudgementType", "");
+                parameters.Add("@ShortName", "");
+                parameters.Add("@Description", "");
+
+                var result = await connection.QueryAsync("sp_JudgementType", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+
+        #region Councel deatails
+
+        [HttpPost("InsertCounsel")]
+        public async Task<IActionResult> InsertCounsel()
+        {
+            string dbFilePath = "";
+            var httpRequest = HttpContext.Request;
+            var postedFile = httpRequest.Form.Files["postedFile"];
+            var userData = httpRequest.Form["userData"];
+
+            CounselDetail model = JsonConvert.DeserializeObject<CounselDetail>(userData);
+
+            // Define the image upload path
+            string contentPath = this.Environment.ContentRootPath;
+            string uploadFolder = Path.Combine(contentPath, "Uploads/CounselPhotos");
+
+            if (!Directory.Exists(uploadFolder))
+                Directory.CreateDirectory(uploadFolder);
+
+            if (postedFile != null && postedFile.Length > 0)
+            {
+                string fileName = Guid.NewGuid() + Path.GetExtension(postedFile.FileName);
+                string filePath = Path.Combine(uploadFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await postedFile.CopyToAsync(stream);
+                }
+
+                // Store relative path in DB
+                model.PhotoPath = "/Uploads/CounselPhotos/" + fileName;
+            }
+
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcID", 1);
+                parameters.Add("@CounselId", 0);
+                parameters.Add("@FullName", model.FullName);
+                parameters.Add("@FatherName", model.FatherName);
+                parameters.Add("@Gender", model.Gender);
+                parameters.Add("@IsSenior", model.IsSenior);
+                parameters.Add("@EmailId", model.EmailId);
+                parameters.Add("@MobileNo", model.MobileNo);
+                parameters.Add("@PhotoPath", model.PhotoPath);
+                parameters.Add("@Address", model.Address);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("PROC_CounselDetails", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpPut("UpdateCounsel")]
+        public async Task<IActionResult> UpdateCounsel()
+        {
+            string dbFilePath = "";
+            var httpRequest = HttpContext.Request;
+            var postedFile = httpRequest.Form.Files["postedFile"];
+            var userData = httpRequest.Form["userData"];
+
+            CounselDetail model = JsonConvert.DeserializeObject<CounselDetail>(userData);
+
+            // Define image save location
+            string contentPath = this.Environment.ContentRootPath;
+            string uploadFolder = Path.Combine(contentPath, "Uploads/CounselPhotos");
+
+            if (!Directory.Exists(uploadFolder))
+                Directory.CreateDirectory(uploadFolder);
+
+            if (postedFile != null && postedFile.Length > 0)
+            {
+                string fileName = Guid.NewGuid() + Path.GetExtension(postedFile.FileName);
+                string filePath = Path.Combine(uploadFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await postedFile.CopyToAsync(stream);
+                }
+
+                model.PhotoPath = "/Uploads/CounselPhotos/" + fileName;
+            }
+
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcID", 2); // Update
+                parameters.Add("@CounselId", model.CounselId);
+                parameters.Add("@FullName", model.FullName);
+                parameters.Add("@FatherName", model.FatherName);
+                parameters.Add("@Gender", model.Gender);
+                parameters.Add("@IsSenior", model.IsSenior);
+                parameters.Add("@EmailId", model.EmailId);
+                parameters.Add("@MobileNo", model.MobileNo);
+                parameters.Add("@PhotoPath", model.PhotoPath);
+                parameters.Add("@Address", model.Address);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("PROC_CounselDetails", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllCounsel")]
+        public async Task<IActionResult> GetAllCounsel()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcID", 3);
+
+                var result = await connection.QueryAsync("PROC_CounselDetails", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetCounselById/{id}")]
+        public async Task<IActionResult> GetCounselById(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcID", 4);
+                parameters.Add("@CounselId", id);
+
+                var result = await connection.QueryAsync("PROC_CounselDetails", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteCounsel/{id}")]
+        public async Task<IActionResult> DeleteCounsel(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcID", 5);
+                parameters.Add("@CounselId", id);
+
+                var result = await connection.QueryAsync("PROC_CounselDetails", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
 
         #endregion
     }

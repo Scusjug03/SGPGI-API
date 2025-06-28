@@ -71,4 +71,35 @@
         public string Description { get; set; } = string.Empty;
         public int UserId { get; set; }
     }
+
+    public class IntrimMaster
+    {
+        public int InterimOrderId { get; set; }
+        public string InterimOrder { get; set; } = string.Empty;
+        public string ShortName { get; set; } = string.Empty;
+        public string Description { get; set; }= string.Empty;
+        
+    }
+    public class JudgementTypeModel
+    {
+        public int JudgementTypeID { get; set; }
+        public string JudgementType { get; set; } = string.Empty;
+        public string ShortName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+
+    public class CounselDetail
+    {
+        public int CounselId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string FatherName { get; set; } = string.Empty;
+        public string Gender { get; set; } = string.Empty;
+        public bool IsSenior { get; set; }
+        public string EmailId { get; set; } = string.Empty;
+        public string MobileNo { get; set; } = string.Empty;
+        public string PhotoPath { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public int UserId { get; set; }
+    }
+
 }
