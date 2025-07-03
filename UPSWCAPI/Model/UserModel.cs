@@ -10,6 +10,7 @@
         public int ProcId { get; set; }
         public int EmpId { get; set; }
         public string IsFirstLogin { get; set; } = string.Empty;
+        public string DashboardPage { get; set; } = string.Empty;
         //public string EmailAddress { get; set; }
         //public bool isAuth { get; set; }
         //public DateTime DateOfJoing { get; set; }

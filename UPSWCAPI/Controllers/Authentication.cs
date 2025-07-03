@@ -45,8 +45,7 @@ namespace UPSWCAPI.Controllers
             if (model == null)
                 return BadRequest();
 
-            var user = await Task.FromResult(_dapper.Get<UserModel>($"Select *, UserPassword as password from [dbo].[UserLogin] where RoleTypeId = "+ model.RoleTypeId +" AND UserName = '" + model.userName + "'", null, commandType: CommandType.Text));
-            if (user == null)
+            var user = await Task.FromResult(_dapper.Get<UserModel>($"Select *, UserPassword as password ,isnull((select DashboardPage from M_RoleType where Roletypeid=[UserLogin].roletypeid) ,'samplePage')  DashboardPage from [dbo].[UserLogin] where RoleTypeId = " + model.RoleTypeId + " AND UserName = '" + model.userName + "'", null, commandType: CommandType.Text)); if (user == null)
                 return NotFound(new { Message = "User not found!" });
 
             if (string.IsNullOrWhiteSpace(user.password) || user.password.Length < 20) // adjust if you know your hash format
@@ -112,8 +111,9 @@ namespace UPSWCAPI.Controllers
                 officeId = user.OfficeId,
                 UserName = user.userName,
                 empId   = user.EmpId,
-                isFirstLogin = user.IsFirstLogin
-                
+                isFirstLogin = user.IsFirstLogin,
+               DashboardPage = user.DashboardPage
+
 
 
 

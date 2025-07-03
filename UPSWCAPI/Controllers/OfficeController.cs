@@ -1,22 +1,23 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using Dapper;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using UPSWCAPI.Model;
-using static UPSWCAPI.Model.EnquiryDbContext;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Dapper;
-using Microsoft.AspNetCore.Http;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using UPSWCAPI.Services;
-using Microsoft.EntityFrameworkCore;
 using System.Xml.Linq;
-using Microsoft.Extensions.Configuration;
-using System.Globalization;
+using UPSWCAPI.Model;
 using UPSWCAPI.Model.UPSWCAPI.Model;
+using UPSWCAPI.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static UPSWCAPI.Model.EnquiryDbContext;
 
 namespace UPSWCAPI.Controllers
 {
@@ -34,6 +35,7 @@ namespace UPSWCAPI.Controllers
             Configuration = _configuration;
             _context = context;
             _dapper = dapper;
+            
         }
         private readonly EnquiryDbContext _context;
 
@@ -116,7 +118,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@GradePayId", model.gradePayId);
                 parameters.Add("@LevelID", model.levelID);
                 parameters.Add("@IncrementId", model.incrementId);
-                parameters.Add("@BasicSalary", model.basicSalary);
+                parameters.Add("@basicSalary", model.basicSalary);
                 parameters.Add("@MA", model.ma);
                 parameters.Add("@WA", model.wa);
                 parameters.Add("@CCA", model.cca);
@@ -325,7 +327,7 @@ namespace UPSWCAPI.Controllers
                     parameters.Add("@GradePayId", model.gradePayId);
                     parameters.Add("@LevelID", model.levelID);
                     parameters.Add("@IncrementId", model.incrementId);
-                    parameters.Add("@BasicSalary", model.basicSalary);
+                    parameters.Add("@basicSalary", model.basicSalary);
                     parameters.Add("@MA", model.ma);
                     parameters.Add("@WA", model.wa);
                     parameters.Add("@CCA", model.cca);
@@ -788,6 +790,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@DivisionId", model.DivisionId);
                 parameters.Add("@OfficeName", model.OfficeName ?? string.Empty);
                 //parameters.Add("@Status", model.Status ?? "A");
+                parameters.Add("@ShortName", model.ShortName);
                 parameters.Add("@OfficeCode", model.OfficeCode);
                 //parameters.Add("@AgencyTypeId", model.AgencyTypeId);
                 parameters.Add("@CreatedOn", DateTime.Now);
@@ -1289,6 +1292,157 @@ namespace UPSWCAPI.Controllers
 
         #endregion
 
+        #region locksalary
+        [HttpGet("get-lock-salary")]
+        public async Task<IActionResult> GetLockSalary(
+        int officeId, int wTypeId, int departmentId, int subDepartmentId,
+        int month, int year, string salaryType, int orderBy)
+        {
+            try
+            {
+                string orderClause = orderBy switch
+                {
+                    1 => "ORDER BY ed.empname",
+                    2 => "ORDER BY ed.PFMSCODE",
+                    3 => "ORDER BY ed.DptEmpCode",
+                    _ => "ORDER BY ed.PPONo"
+                };
+
+                string query = "";
+
+                // Adjust query based on working type
+                if (wTypeId == 2)
+                {
+                    query = @$"
+                SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+                       rt.departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+                       ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+                       ed.IncrementId, P.BasicSal AS basicSalary
+                FROM SamvidaPayRegister p
+                LEFT JOIN empdetail ed ON p.EmpId = ed.EmpId
+                LEFT JOIN departmenthead rt ON rt.departmentid = p.departmentid
+                LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+                LEFT JOIN designation de ON de.designationid = p.desigid
+                WHERE p.Status = 'N' AND ed.WTypeId = 2 AND 
+                      p.OfficeId = @officeId AND 
+                      p.Subdeptid IN (@subDepartmentId) AND 
+                      PayMonth = @month AND 
+                      PayYear = @year AND 
+                      SalaryType = @salaryType 
+                {orderClause}";
+                }
+                else if (wTypeId == 1)
+                {
+                    query = @$"
+                SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+                       rt.departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+                       ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+                       ed.IncrementId, P.BasicSal AS basicSalary
+                FROM PayRegister p
+                INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+                LEFT JOIN departmenthead rt ON rt.departmentid = p.departmentid
+                LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+                LEFT JOIN designation de ON de.designationid = p.desigid
+                WHERE p.Status = 'N' AND ed.WTypeId = 1 AND 
+                      p.OfficeId = @officeId AND 
+                      p.Subdeptid IN (@subDepartmentId) AND 
+                      PayMonth = @month AND 
+                      PayYear = @year AND 
+                      SalaryType = @salaryType 
+                {orderClause}";
+                }
+                else if (wTypeId == 5)
+                {
+                    query = @$"
+                SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+                       rt.departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+                       ed.fathername, de.designationname, 0 AS gradepay, ed.LevelID, 
+                       ed.IncrementId, P.BasicSal AS basicSalary
+                FROM DailyWagesPayRegister p
+                INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+                LEFT JOIN departmenthead rt ON rt.departmentid = p.departmentid
+                LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+                LEFT JOIN designation de ON de.designationid = ed.designationid
+                WHERE ISNULL(P.Status, 'N') = 'N' AND ed.WTypeId = 5 AND 
+                      p.OfficeId = @officeId AND 
+                      p.Subdeptid IN (@subDepartmentId) AND 
+                      PayMonth = @month AND 
+                      PayYear = @year 
+                {orderClause}";
+                }
+                else if (wTypeId == 4)
+                {
+                    query = @$"
+                SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+                       rt.departmenthead, ed.empname, ISNULL(ed.PPONo,'') DptEmpCode, 
+                       ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+                       ed.IncrementId, P.BasicSal AS basicSalary
+                FROM PayRegister p
+                INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+                LEFT JOIN departmenthead rt ON rt.departmentid = p.departmentid
+                LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+                LEFT JOIN designation de ON de.designationid = p.desigid
+                WHERE p.Status = 'N' AND ed.WTypeId = 4 AND 
+                      p.OfficeId = @officeId AND 
+                      p.Subdeptid IN (@subDepartmentId) AND 
+                      PayMonth = @month AND 
+                      PayYear = @year AND 
+                      SalaryType = @salaryType 
+                {orderClause}";
+                }
+
+                using var connection = _context.Database.GetDbConnection();
+                var result = await connection.QueryAsync(query, new
+                {
+                    officeId,
+                    subDepartmentId,
+                    month,
+                    year,
+                    salaryType
+                });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("UpdateSalaryStatusInline")]
+        public async Task<IActionResult> UpdateSalaryStatusInline([FromBody] FinalizeSalaryRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                foreach (var empId in model.EmpIds)
+                {
+                    var query = @"UPDATE PayRegister 
+                          SET Status = @Status 
+                          WHERE EmpId = @EmpId AND PayMonth = @FinalMonth AND PayYear = @FinalYear AND SalaryType = @SalaryType";
+
+                    await connection.ExecuteAsync(query, new
+                    {
+                        status = model.Status,
+                        EmpId = empId,
+                        finalMonth = model.FinalMonth,
+                        finalYear = model.FinalYear,
+                        salaryType = model.SalaryType
+                    });
+                }
+
+                return Ok(new { message = "Salary status updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+        #endregion 
 
     }
 }

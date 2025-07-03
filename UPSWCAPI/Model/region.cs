@@ -12,9 +12,10 @@
         public int DivisionId { get; set; }
         public int OfficeId { get; set; }
         public int RegionId { get; set; }
-        public string OfficeName { get; set; }
+        public string OfficeName { get; set; } = string.Empty;
         //public string Status { get; set; }
-        public string OfficeCode { get; set; }
+        public string ShortName { get; set; } = string.Empty;
+        public string OfficeCode { get; set; } = string.Empty;
     }
 
 }

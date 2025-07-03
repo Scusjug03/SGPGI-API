@@ -529,7 +529,7 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpGet("GetAllRolePermlst")]
-        public async Task<IActionResult> GetAllRolePermlst()
+        public async Task<IActionResult> GetAllRolePermlst(int officeid)
         {
             try
             {
@@ -537,6 +537,7 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcId", 3);
+                parameters.Add("@OfficeId", officeid);
                 var RoleMaster = await connection.QueryAsync("[dbo].[Proc_RoleMaster]", parameters, commandType: CommandType.StoredProcedure);
                 return Ok(new { success = true, data = RoleMaster });
             }
