@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\ReceiveStorageController.cs" />
+    <Compile Remove="Model\ReceiveStorageDto.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     
     <PackageReference Include="Dapper" Version="2.1.66" />
     
@@ -27,6 +32,11 @@
 
   <ItemGroup>
     <Folder Include="Uploads\UserProfile\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Controllers\ReceiveStorageController.cs" />
+    <None Include="Model\ReceiveStorageDto.cs" />
   </ItemGroup>
 
 </Project>

@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: "allowCors",
         builder =>
         {
-            builder.WithOrigins("https://localhost:4200", "http://localhost:4209")
+            builder.WithOrigins("https://localhost:4200", "http://localhost:4209", "https://mectoitest.uphq.in")
             .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -64,7 +64,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200") // Allow Angular
+            policy.WithOrigins("http://localhost:4200", "https://mectoitest.uphq.in") // Allow Angular
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
