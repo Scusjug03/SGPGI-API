@@ -9,4 +9,14 @@
         public int YearId { get; set; }
         public int ProcId { get; set; }
     }
+
+    public class BillRequestDto
+    {
+        public int BillMonth { get; set; }
+        public int BillYear { get; set; }
+        public int? Agencytypeid { get; set; }
+        public int? CommodityId { get; set; }   // optional
+        public int? WarehouseId { get; set; }   // optional
+        public int? UesrId { get; set; }
+    }
 }

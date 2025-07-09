@@ -119,6 +119,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@LevelID", model.levelID);
                 parameters.Add("@IncrementId", model.incrementId);
                 parameters.Add("@basicSalary", model.basicSalary);
+                parameters.Add("@hrmsID", model.hrmsID);
                 parameters.Add("@MA", model.ma);
                 parameters.Add("@WA", model.wa);
                 parameters.Add("@CCA", model.cca);
@@ -328,6 +329,7 @@ namespace UPSWCAPI.Controllers
                     parameters.Add("@LevelID", model.levelID);
                     parameters.Add("@IncrementId", model.incrementId);
                     parameters.Add("@basicSalary", model.basicSalary);
+                    parameters.Add("@hrmsID", model.hrmsID);
                     parameters.Add("@MA", model.ma);
                     parameters.Add("@WA", model.wa);
                     parameters.Add("@CCA", model.cca);

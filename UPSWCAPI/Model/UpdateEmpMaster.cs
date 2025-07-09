@@ -50,6 +50,7 @@
         public int? levelID { get; set; }
         public int? incrementId { get; set; }
         public decimal basicSalary { get; set; }
+        public string hrmsID { get; set; } = string.Empty;
         public string ma { get; set; } = "N";
         public string wa { get; set; } = "N";
         public string hra { get; set; } = "N";
