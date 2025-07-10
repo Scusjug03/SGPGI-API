@@ -62,6 +62,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@MonthId", model.MonthId);
                 parameters.Add("@YearId", model.YearId);
                 parameters.Add("@ProcId", model.ProcId);
+                parameters.Add("@Remark", model.Remark);
 
 
                 var result = await connection.QueryAsync("Proc_NAFEDRpt", parameters, commandType: CommandType.StoredProcedure);
@@ -72,7 +73,10 @@ namespace UPSWCAPI.Controllers
                     data = result,
                     CommodityName = firstRow?.CommodityName ?? "",
                     WareHouseName = firstRow?.WareHouseName ?? "",
-                    RegionName = firstRow?.RegionName ?? ""
+                    RegionName = firstRow?.RegionName ?? "",
+                    BillCode = firstRow?.BillCode ?? "",
+                    GenBillDate = firstRow?.GenBillDate ?? "",
+                    AgencyName = firstRow?.AgencyName ?? ""
                 });
 
             }
@@ -100,6 +104,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@MonthId", model.MonthId);
                 parameters.Add("@YearId", model.YearId);
                 parameters.Add("@ProcId", model.ProcId);
+                parameters.Add("@Remark", model.Remark);
 
 
                 var result = await connection.QueryAsync("Proc_NAFEDRpt", parameters, commandType: CommandType.StoredProcedure);
@@ -110,7 +115,10 @@ namespace UPSWCAPI.Controllers
                     data = result,
                     CommodityName = firstRow?.CommodityName ?? "",
                     WareHouseName = firstRow?.WareHouseName ?? "",
-                    RegionName = firstRow?.RegionName ?? ""
+                    RegionName = firstRow?.RegionName ?? "",
+                    BillCode = firstRow?.BillCode ?? "",
+                    GenBillDate = firstRow?.GenBillDate ?? "",
+                    AgencyName = firstRow?.AgencyName ?? ""
                 });
 
             }
@@ -137,7 +145,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@BillYear", model.BillYear);
                 parameters.Add("@Userid", model.UesrId);
                 //parameters.Add("@ProcId", model.ProcId);
-
+                
                 await connection.ExecuteAsync("sp_CalDailyStorageCharges_Nafed", parameters, commandType: CommandType.StoredProcedure);
 
                 return Ok(new { success = true, message = "Bill generated successfully (default month/year used)." });
@@ -149,6 +157,80 @@ namespace UPSWCAPI.Controllers
         }
 
         #endregion
+
+        #region Nafed Forward Report
+        [HttpPost("NAFEDForwardReport")]
+
+        public async Task<IActionResult> NAFEDForwardReport([FromBody] NAFEDReportRequest model)
+            {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                //using var connection = new SqlConnection(Configuration.GetConnectionString("DefaultConnection"));
+                // await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@warehouseid", model.WarehouseId);
+                parameters.Add("@AgencyTypeId", model.AgencyTypeId);
+                parameters.Add("@commodityid", model.CommodityId);
+                parameters.Add("@MonthId", model.MonthId);
+                parameters.Add("@YearId", model.YearId);
+                parameters.Add("@BillStatusId", 0);
+                parameters.Add("@Remark", model.Remark);
+                parameters.Add("@ProcId", model.ProcId);              
+            
+
+
+                var result = await connection.QueryAsync("Proc_NAFEDRpt", parameters, commandType: CommandType.StoredProcedure);
+
+                var firstRow = result.FirstOrDefault();
+                return Ok(new
+                {
+                    data = result,
+                    CommodityName = firstRow?.CommodityName ?? "",
+                    WareHouseName = firstRow?.WareHouseName ?? "",
+                    RegionName = firstRow?.RegionName ?? "",
+                    BillCode = firstRow?.BillCode ?? "",
+                    GenBillDate = firstRow?.GenBillDate ?? "",
+                    AgencyName = firstRow?.AgencyName ?? ""
+                });
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        [HttpPost("ForwardToRM")]
+        public async Task<IActionResult> ForwardToRM([FromBody] NafedForwardDto model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@WarehouseId", model.WarehouseId);
+                parameters.Add("@AgencyTypeId", model.AgencyTypeId);
+                parameters.Add("@CommodityId", model.CommodityId);
+                parameters.Add("@MonthId", model.MonthId);
+                parameters.Add("@YearId", model.YearId);
+                parameters.Add("@ProcId", model.ProcId);
+                parameters.Add("@Remark", model.Remark);
+
+                await connection.ExecuteAsync("Proc_NAFEDRpt", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Forwarded to R.M. successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error occurred: " + ex.Message });
+            }
+        }
 
     }
 }

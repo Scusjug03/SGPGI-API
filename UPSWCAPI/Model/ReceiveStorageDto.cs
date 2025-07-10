@@ -23,8 +23,8 @@
         public decimal MaterialWeight_kg { get; set; }
         public string VehicleNumber { get; set; }
         public string GatePassNumber { get; set; }
-        public string ReceiverName { get; set; }
-        public string WeightingWay { get; set; }
+        public string? ReceiverName { get; set; }
+        public string? WeightingWay { get; set; }
         public DateTime ReceiveDate { get; set; }
     }
 }

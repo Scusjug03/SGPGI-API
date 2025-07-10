@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\IssueStorageController.cs" />
     <Compile Remove="Controllers\ReceiveStorageController.cs" />
+    <Compile Remove="Controllers\ReceiveStorageDto.cs" />
+    <Compile Remove="Model\IssueStorage.cs" />
     <Compile Remove="Model\ReceiveStorageDto.cs" />
   </ItemGroup>
 
@@ -35,7 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Controllers\IssueStorageController.cs" />
     <None Include="Controllers\ReceiveStorageController.cs" />
+    <None Include="Model\IssueStorage.cs" />
     <None Include="Model\ReceiveStorageDto.cs" />
   </ItemGroup>
 
