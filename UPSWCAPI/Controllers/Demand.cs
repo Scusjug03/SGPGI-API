@@ -50,26 +50,48 @@ namespace UPSWCAPI.Controllers
         #region DemandForm
 
         [HttpPost("insert-demand")]
-        public async Task<IActionResult> InsertDemand([FromBody] DemandInsertDto model)
+        public async Task<IActionResult> InsertDemand([FromBody] List<DemandInsertDto> modelList)
         {
             try
             {
+                if (modelList == null || !modelList.Any())
+                {
+                    return BadRequest(new { success = false, message = "No demand entries provided." });
+                }
+
                 using var connection = _context.Database.GetDbConnection();
                 await connection.OpenAsync();
 
+                // Create a DataTable matching SQL TVP structure
+                var dt = new DataTable();
+                dt.Columns.Add("MakeId", typeof(int));
+                dt.Columns.Add("OfficeDemandQty", typeof(decimal));
+                dt.Columns.Add("UnitId", typeof(int));
+                dt.Columns.Add("ItemId", typeof(int));
+                dt.Columns.Add("OfficeRemarks", typeof(string));
+                dt.Columns.Add("DemandStatus", typeof(string));
+                dt.Columns.Add("UserId", typeof(int));
+
+                foreach (var entry in modelList)
+                {
+                    dt.Rows.Add(
+                        entry.MakeId,
+                        entry.OfficeDemandQty,
+                        entry.UnitId,
+                        entry.ItemId,
+                        entry.OfficeRemarks ?? string.Empty,
+                        entry.DemandStatus ?? "Forward to RM Office",
+                        entry.UserId
+                    );
+                }
+
                 var parameters = new DynamicParameters();
-                parameters.Add("@ProcId", 1); // For Insert
-                parameters.Add("@MakeId", model.MakeId);
-                parameters.Add("@OfficeDemandQty", model.OfficeDemandQty);
-                parameters.Add("@UnitId", model.UnitId);
-                parameters.Add("@ItemId", model.ItemId);
-                parameters.Add("@OfficeRemarks", model.OfficeRemarks);
-                parameters.Add("@DemandStatus", model.DemandStatus);
-                parameters.Add("@UserId", model.UserId);
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@DemandEntries", dt.AsTableValuedParameter("dbo.DemandEntryType")); // <-- your TVP name
 
-                var result = await connection.QueryAsync<dynamic>("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
+                var result = await connection.QueryAsync("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
 
-                return Ok(new { success = true, message = "Demand inserted successfully.", data = result });
+                return Ok(new { success = true, message = "Batch demand inserted.", data = result });
             }
             catch (Exception ex)
             {

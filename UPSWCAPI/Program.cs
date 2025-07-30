@@ -25,7 +25,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: "allowCors",
         builder =>
         {
-            builder.WithOrigins("https://localhost:4200", "http://localhost:4209", "https://mectoitest.uphq.in")
+            builder.WithOrigins("https://localhost:4200", "http://localhost:4209", "http://localhost:7004",
+                "https://mectoitest.uphq.in","https://wms.uphq.in")
             .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod();

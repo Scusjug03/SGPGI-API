@@ -3,6 +3,16 @@
     public class PayRegister
     {
         public int EmpId { get; set; }
+        public string DptEmpCode { get; set; } = string.Empty;
+        public string EmpName { get; set; } = string.Empty;
+        public string DesignationName { get; set; } = string.Empty;
+        public string CPfAccountNo { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = string.Empty;
+        public int CategoryId { get; set; } 
+        public string PanNo { get; set; } = string.Empty;
+        public string LwpOrderNo { get; set; } = string.Empty;
+        public string PayslipDt { get; set; } = string.Empty;
+        public string Absence { get; set; } = string.Empty;
         public int PayYear { get; set; }
         public int PayMonth { get; set; }
         public decimal WorkDays { get; set; }
@@ -31,27 +41,28 @@
         public decimal VehicleAllow { get; set; }
         public decimal OtherAllow { get; set; }
         public decimal MiscAllowAmt1 { get; set; }
-        public string MiscAllowDesc1 { get; set; }
+        public string MiscAllowDesc1 { get; set; } = string.Empty;
         public decimal MiscAllowAmt2 { get; set; }
-        public string MiscAllowDesc2 { get; set; }
+        public string MiscAllowDesc2 { get; set; } = string.Empty;
         public decimal MiscAllowAmt3 { get; set; }
-        public string MiscAllowDesc3 { get; set; }
+        public string MiscAllowDesc3 { get; set; } = string.Empty;
         public decimal MiscAllowAmt4 { get; set; }
-        public string MiscAllowDesc4 { get; set; }
+        public string MiscAllowDesc4 { get; set; } = string.Empty;
         public decimal MiscDedAmt1 { get; set; }
-        public string MiscDedDesc1 { get; set; }
+        public string MiscDedDesc1 { get; set; } = string.Empty;
         public decimal MiscDedAmt2 { get; set; }
-        public string MiscDedDesc2 { get; set; }
+        public string MiscDedDesc2 { get; set; } = string.Empty;
         public decimal MiscDedAmt3 { get; set; }
-        public string MiscDedDesc3 { get; set; }
+        public string MiscDedDesc3 { get; set; } = string.Empty;
         public decimal MiscDedAmt4 { get; set; }
-        public string MiscDedDesc4 { get; set; }
+        public string MiscDedDesc4 { get; set; } = string.Empty;
         public decimal GrossPay { get; set; }
         public int GPFTypeId { get; set; }
         public decimal GPF { get; set; }
         public decimal PPF { get; set; }
         public decimal LIC { get; set; }
         public decimal GIS { get; set; }
+        public decimal GI { get; set; }
         public decimal VehicleCharges { get; set; }
         public decimal IncomeTax { get; set; }
         public decimal CourtReco { get; set; }
@@ -70,17 +81,22 @@
         public decimal GenLoanInt { get; set; }
         public decimal CALoan { get; set; }
         public decimal CALoanInt { get; set; }
+        public decimal BLA { get; set; }
+        public decimal BLAInt { get; set; }
         public decimal MiscReco { get; set; }
         public decimal OtherReco { get; set; }
         public decimal StaffAdv { get; set; }
         public decimal CoOperative { get; set; }
         public decimal Penalty { get; set; }
         public decimal Rd { get; set; }
+        public decimal HatkarghaNigamAdv { get; set; }
+        public decimal NSF { get; set; }
         public decimal NetPay { get; set; }
-        public string Remarks { get; set; }
-        public string Status { get; set; }
+        public decimal EleCharges { get; set; }
+        public string Remarks { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public DateTime entrydate { get; set; }
-        public string salarytype { get; set; }
+        public string salarytype { get; set; } = string.Empty;
         public int UserId { get; set; }
         public int OfficeId { get; set; }
         public int DepartmentId { get; set; }
@@ -89,16 +105,26 @@
         public int CommssionId { get; set; }
         public int LevelId { get; set; }
         public int IncrementId { get; set; }
-        public string IPAddress { get; set; }
+        public string IPAddress { get; set; } = string.Empty;
         public decimal BasicPay { get; set; }
-        public string AccountNo { get; set; }
+        public decimal CPF { get; set; }
+        public string AccountNo { get; set; } = string.Empty;
         public int BranchId { get; set; }
-        public string GPFCode { get; set; }
-        public string CPFCode { get; set; }
-        public string PFMSCode { get; set; }
+        public string GPFCode { get; set; } = string.Empty;
+        public string CPFCode { get; set; } = string.Empty;
+        public string PFMSCode { get; set; } = string.Empty; 
         public int ScaleId { get; set; }
         public int HeadId { get; set; }
         public DateTime UpdateDate { get; set; }
-        public string E_HRMSId { get; set; }
+        public string E_HRMSId { get; set; } = string.Empty;
+        public decimal CPFVol { get; set; }
+        public decimal LWP { get; set; }
+        public decimal NSC { get; set; }
+        public decimal CoUnionInsurance { get; set; }
+        public int LevelC { get; set; }
+        public int Arrear { get; set; }
+        public int PayFixation { get; set; }
+        public int Bonus { get; set; }
+        public int HeavyDuty { get; set; }
     }
 }

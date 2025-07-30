@@ -33,7 +33,7 @@ namespace UPSWCAPI.Model
         public string? GatePassNo { get; set; }
         public string? IssuerName { get; set; }
         public string? WeightingWay { get; set; }
-        
+
     }
 
 

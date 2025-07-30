@@ -6,4 +6,10 @@
         public string MasterName { get; set; }
 
     }
+
+    public class Commudity
+    {
+        public int CommodityId { get; set; }
+        public string CommodityName { get; set; } = string.Empty;
+    }
 }

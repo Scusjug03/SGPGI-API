@@ -106,7 +106,7 @@ namespace UPSWCAPI.Controllers
 
         [HttpPost("GetAllModuleList")]
         public async Task<IEnumerable<ModuleMaster>> GetAllModuleList([FromBody] ModuleMaster model)
-        {
+        {   
             var dbparams = new DynamicParameters();
             dbparams.Add("ProjectId", model.projectId, DbType.Int32);
             dbparams.Add("ModuleName", model.moduleName, DbType.String);
@@ -160,10 +160,12 @@ namespace UPSWCAPI.Controllers
         }
 
 
+
         [HttpPut("DeleteEnquiryById")]
         public async Task<ModuleMaster> DeleteEnquiryById(ModuleMaster model)        
         {
             var dbparams = new DynamicParameters();
+
             dbparams.Add("ModuleId", model.moduleId, DbType.Int32);           
             dbparams.Add("ProcId", 6);
             var result = await Task.FromResult(_dapper.Get<ModuleMaster>("[dbo].[Proc_MenuMaster]", dbparams,
@@ -953,5 +955,883 @@ namespace UPSWCAPI.Controllers
         #endregion
 
 
+        #region remove Role Permission
+        [HttpPost("RemovePermissionList")]
+        public async Task<IEnumerable<ModuleMaster>> RemovePermissionList([FromBody] ModuleMaster model)
+        {
+            var dbparams = new DynamicParameters();
+            dbparams.Add("ProjectId", model.projectId, DbType.Int32);
+            dbparams.Add("ModuleId", model.moduleId, DbType.Int32);
+            dbparams.Add("MenuId", model.menuId, DbType.Int32);
+            dbparams.Add("PermissionId", model.permissionId, DbType.Int32); // Important for ProcId 4
+            dbparams.Add("ProcId", model.procid, DbType.Int32);
+            dbparams.Add("Msg", dbType: DbType.String, size: 100, direction: ParameterDirection.Output);
+            dbparams.Add("XML", null);
+
+            var result = await Task.FromResult(_dapper.GetAll<ModuleMaster>(
+                "[dbo].[SP_UserPermission]", dbparams, commandType: CommandType.StoredProcedure));
+
+            return result;
+        }
+
+        #endregion
+
+        [HttpPost("ShowPassword")]
+        public async Task<IActionResult> ShowPassword(int officeId = 0, int regionId = 0)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@OfficeId", officeId);
+                parameters.Add("@UsertypeId", regionId);
+                parameters.Add("@ProcId", 3);
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "Proc_UserLogin",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Failed to load password data",
+                    error = ex.Message
+                });
+            }
+        }
+
+
+        #region Commudity Master
+        [HttpPost("InsertCommudity")]
+        public async Task<IActionResult> InsertCommudity([FromBody] Commudity model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@CommodityId", model.CommodityId);
+                parameters.Add("@CommodityName", model.CommodityName);
+                await connection.ExecuteAsync("[dbo].[Proc_Commudity]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Commudity inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateCommudity")]
+        public async Task<IActionResult> UpdateCommudity([FromBody] Commudity model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2); // 2 for update
+                parameters.Add("@CommodityId", model.CommodityId);
+                parameters.Add("@CommodityName", model.CommodityName);
+                await connection.ExecuteAsync("[dbo].[Proc_Commudity]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Commudity updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("getAllCommudity")]
+        public async Task<IActionResult> getAllCommudity()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+
+                var commudity = await connection.QueryAsync("[dbo].[Proc_Commudity]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = commudity });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllComudity/{id}")]
+        public async Task<IActionResult> GetAllComudity(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@CommodityId", id);
+
+                var office = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_Commudity]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = office });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpDelete("DeleteCommudity/{id}")]
+        public async Task<IActionResult> DeleteCommudity(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+                parameters.Add("@CommodityId", id);
+
+                await connection.ExecuteAsync("[dbo].[Proc_Commudity]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Commudity deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+
+        #region Role Type Master 
+
+        [HttpPost("InsertRoleType")]
+        public async Task<IActionResult> InsertRoleType([FromBody] RoleType model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@RoleTypeId", model.RoleTypeId);
+                parameters.Add("@RoleTypeName", model.RoleTypeName ?? string.Empty);
+                parameters.Add("@ShortName", model.ShortName ?? string.Empty);
+                parameters.Add("@DashboardPage", model.DashboardPage ?? string.Empty);
+
+
+                await connection.ExecuteAsync("[dbo].[Proc_RoleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Role Type inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateRoleType")]
+        public async Task<IActionResult> UpdateRoleType([FromBody] RoleType model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@RoleTypeId", model.RoleTypeId);
+                parameters.Add("@RoleTypeName", model.RoleTypeName ?? string.Empty);
+                parameters.Add("@ShortName", model.ShortName ?? string.Empty);
+                parameters.Add("@DashboardPage", model.DashboardPage ?? string.Empty);
+
+                await connection.ExecuteAsync("[dbo].[Proc_RoleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Role Type updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllRoleType")]
+        public async Task<IActionResult> GetAllRoleType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_RoleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetRoleTypeById/{RoleTypeId}")]
+        public async Task<IActionResult> GetRoleTypeById(int RoleTypeId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@RoleTypeId", RoleTypeId);
+
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_RoleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteRoleType/{id}")]
+        public async Task<IActionResult> DeleteRoleType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@RoleTypeId", id);
+
+                await connection.ExecuteAsync("[dbo].[Proc_RoleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Role Type deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+        #region Loan Type Master 
+
+        [HttpPost("InsertLoanType")]
+        public async Task<IActionResult> InsertLoanType([FromBody] LoanTypeMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@LoanTypeId", model.LoanTypeId);
+                parameters.Add("@LoanType", model.LoanType ?? string.Empty);
+                parameters.Add("@LoanDesc", model.LoanDesc ?? string.Empty);
+
+                await connection.ExecuteAsync("[dbo].[Proc_LoanType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Loan Type inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateLoanType")]
+        public async Task<IActionResult> UpdateLoanType([FromBody] LoanTypeMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@LoanTypeId", model.LoanTypeId);
+                parameters.Add("@LoanType", model.LoanType ?? string.Empty);
+                parameters.Add("@LoanDesc", model.LoanDesc ?? string.Empty);
+
+                await connection.ExecuteAsync("[dbo].[Proc_LoanType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Loan Type updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllLoanType")]
+        public async Task<IActionResult> GetAllLoanType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_LoanType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetLoanTypeById/{LoanTypeId}")]
+        public async Task<IActionResult> GetLoanTypeById(int LoanTypeId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@LoanTypeId", LoanTypeId);
+
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_LoanType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteLoanType/{id}")]
+        public async Task<IActionResult> DeleteLoanType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@LoanTypeId", id);
+
+                await connection.ExecuteAsync("[dbo].[Proc_LoanType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Loan Type deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+
+        #region Commission Master 
+
+        [HttpPost("InsertComType")]
+        public async Task<IActionResult> InsertComType([FromBody] ComissionMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@ComissionId", model.ComissionId);
+                parameters.Add("@ComName", model.ComName ?? string.Empty);
+
+                await connection.ExecuteAsync("[dbo].[Proc_ComissionMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Pay Commission inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateComType")]
+        public async Task<IActionResult> UpdateComType([FromBody] ComissionMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@ComissionId", model.ComissionId);
+                parameters.Add("@ComName", model.ComName ?? string.Empty);
+
+                await connection.ExecuteAsync("[dbo].[Proc_ComissionMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Pay Commission updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllComType")]
+        public async Task<IActionResult> GetAllComType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_ComissionMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetComTypeById/{ComissionId}")]
+        public async Task<IActionResult> GetComTypeById(int ComissionId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@ComissionId", ComissionId);
+
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_ComissionMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteComType/{id}")]
+        public async Task<IActionResult> DeleteComType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@ComissionId", id);
+
+                await connection.ExecuteAsync("[dbo].[Proc_ComissionMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Pay Commission deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+        #region Scale Master 
+
+        [HttpPost("InsertScaleType")]
+        public async Task<IActionResult> InsertScaleType([FromBody] ScaleMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@SCALECODE", model.SCALECODE);
+                parameters.Add("@L_LIMIT", model.L_LIMIT);
+                parameters.Add("@INC1", model.INC1);
+                parameters.Add("@L_LIMIT2", model.L_LIMIT2);
+                parameters.Add("@INC2", model.INC2);
+                parameters.Add("@L_LIMIT3", model.L_LIMIT3);
+                parameters.Add("@INC3", model.INC3);
+                parameters.Add("@U_LIMIT", model.U_LIMIT);
+                parameters.Add("@PAYSCALE", model.PAYSCALE ?? string.Empty);
+
+                await connection.ExecuteAsync("[dbo].[Proc_ScaleMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Scale inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateScaleType")]
+        public async Task<IActionResult> UpdateScaleType([FromBody] ScaleMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@SCALECODE", model.SCALECODE);
+                parameters.Add("@L_LIMIT", model.L_LIMIT);
+                parameters.Add("@INC1", model.INC1);
+                parameters.Add("@L_LIMIT2", model.L_LIMIT2);
+                parameters.Add("@INC2", model.INC2);
+                parameters.Add("@L_LIMIT3", model.L_LIMIT3);
+                parameters.Add("@INC3", model.INC3);
+                parameters.Add("@U_LIMIT", model.U_LIMIT);
+                parameters.Add("@PAYSCALE", model.PAYSCALE ?? string.Empty);
+
+                await connection.ExecuteAsync("[dbo].[Proc_ScaleMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Scale updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllScaleType")]
+        public async Task<IActionResult> GetAllScaleType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_ScaleMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetScaleTypeById/{SCALECODE}")]
+        public async Task<IActionResult> GetScaleTypeById(int SCALECODE)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@SCALECODE", SCALECODE);
+
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_ScaleMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteScaleType/{id}")]
+        public async Task<IActionResult> DeleteScaleType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@SCALECODE", id);
+
+                await connection.ExecuteAsync("[dbo].[Proc_ScaleMaster]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Scale deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+
+        #region Gradepay Master 
+
+        [HttpPost("InsertGradePayType")]
+        public async Task<IActionResult> InsertGradePayType([FromBody] GradePayMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@GradePayId", model.GradePayId);
+                parameters.Add("@GradePay", model.GradePay);
+
+                await connection.ExecuteAsync("[dbo].[Proc_Gradepay]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Gradepay inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateGradePayType")]
+        public async Task<IActionResult> UpdateGradePayType([FromBody] GradePayMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@GradePayId", model.GradePayId);
+                parameters.Add("@GradePay", model.GradePay);
+
+                await connection.ExecuteAsync("[dbo].[Proc_Gradepay]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "GradePay updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllGradePayType")]
+        public async Task<IActionResult> GetAllGradePayType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_Gradepay]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetGradePayTypeById/{GradePayId}")]
+        public async Task<IActionResult> GetGradePayTypeById(int GradePayId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@GradePayId", GradePayId);
+
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_Gradepay]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeleteGradePayType/{id}")]
+        public async Task<IActionResult> DeleteGradePayType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@GradePayId", id);
+
+                await connection.ExecuteAsync("[dbo].[Proc_Gradepay]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "GradePay deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+        #region PayCommision Master 
+
+        [HttpPost("InsertPayCommisionType")]
+        public async Task<IActionResult> InsertPayCommisionType([FromBody] PayCommisionMaster model)
+        {
+            try
+            {
+
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@PayCommisionId", model.PayCommisionId);
+                parameters.Add("@PayCommision", model.PayCommision);
+                parameters.Add("@GradePay", model.GradePay);
+                parameters.Add("@PayCommLevel", model.PayCommLevel);
+                parameters.Add("@Increment", model.Increment);
+                parameters.Add("@Basic", model.Basic);
+                parameters.Add("@Levelid", model.Levelid);
+
+                await connection.ExecuteAsync("[dbo].[Proc_PayCommision]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "PayCommision inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdatePayCommisionType")]
+        public async Task<IActionResult> UpdatePayCommisionType([FromBody] PayCommisionMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@PayCommisionId", model.PayCommisionId);
+                parameters.Add("@PayCommision", model.PayCommision);
+                parameters.Add("@GradePay", model.GradePay);
+                parameters.Add("@PayCommLevel", model.PayCommLevel);
+                parameters.Add("@Increment", model.Increment);
+                parameters.Add("@Basic", model.Basic);
+                parameters.Add("@Levelid", model.Levelid);
+
+                await connection.ExecuteAsync("[dbo].[Proc_PayCommision]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "PayCommision updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetAllPayCommisionType")]
+        public async Task<IActionResult> GetAllPayCommisionType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_PayCommision]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetPayCommisionTypeById/{PayCommisionId}")]
+        public async Task<IActionResult> GetPayCommisionTypeById(int PayCommisionId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@PayCommisionId", PayCommisionId);
+
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_PayCommision]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("DeletePayCommisionType/{id}")]
+        public async Task<IActionResult> DeletePayCommisionType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@PayCommisionId", id);
+
+                await connection.ExecuteAsync("[dbo].[Proc_PayCommision]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "PayCommision deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+
+
+       
     }
 }

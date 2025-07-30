@@ -958,8 +958,46 @@ namespace UPSWCAPI.Controllers
         #endregion
 
         #region PaySlip
-        [HttpGet("GetPayRegisterByEmpId/{empId}")]
-        public async Task<IActionResult> GetPayRegisterByEmpId(int empId)
+        [HttpGet("GetPayRegisterByEmpId")]
+        public async Task<IActionResult> GetPayRegisterByEmpId([FromQuery] int empId, [FromQuery] int payMonth, [FromQuery] int payYear)
+            {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1); // 4 for GetById
+                parameters.Add("@EmpId", empId);
+                parameters.Add("@PayMonth", payMonth);
+                parameters.Add("@PayYear", payYear);
+
+                var result = await connection.QueryFirstOrDefaultAsync<PayRegister>(
+                    "SP_PayRegister",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                if (result == null)
+                {
+                    return NotFound(new { success = false, message = "Pay register data not found." });
+                }
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
+        #region PaySlipComm
+        [HttpGet("GetCommulativePayRegisterByEmpId")]
+        public async Task<IActionResult> GetCommulativePayRegisterByEmpId([FromQuery] int empId, [FromQuery] int payMonth, [FromQuery] int payYear)
         {
             try
             {
@@ -967,8 +1005,10 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
-                parameters.Add("@ProcId", 4); // 4 for GetById
+                parameters.Add("@ProcId", 2); // 4 for GetById
                 parameters.Add("@EmpId", empId);
+                parameters.Add("@PayMonth", payMonth);
+                parameters.Add("@PayYear", payYear);
 
                 var result = await connection.QueryFirstOrDefaultAsync<PayRegister>(
                     "SP_PayRegister",
@@ -1144,7 +1184,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@ProcId", 1); // 1 = Insert/Update
                 parameters.Add("@EmpId", model.EmpId);
                 parameters.Add("@LoanTypeId", model.LoanTypeId);
-                parameters.Add("@LoanNo", model.LoanNo);
+                //parameters.Add("@LoanNo", model.LoanNo);
                 parameters.Add("@LoanAmount", model.LoanAmount);
                 parameters.Add("@TotalInst", 0); // Will be calculated in the SP
                 parameters.Add("@InstAmount", model.InstAmount);
@@ -1186,7 +1226,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@LoanTypeId", loanTypeId);
 
                 // Optional / unused parameters - pass NULLs
-                parameters.Add("@LoanNo", dbType: DbType.String, size: 20, direction: ParameterDirection.Input, value: null);
+              //  parameters.Add("@LoanNo", dbType: DbType.String, size: 20, direction: ParameterDirection.Input, value: null);
                 parameters.Add("@LoanAmount", dbType: DbType.Decimal, direction: ParameterDirection.Input, value: null);
                 parameters.Add("@TotalInst", dbType: DbType.Int32, direction: ParameterDirection.Input, value: null);
                 parameters.Add("@InstAmount", dbType: DbType.Decimal, direction: ParameterDirection.Input, value: null);
@@ -1223,7 +1263,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@ProcId", 3); // 1 = Insert/Update
                 parameters.Add("@EmpId", model.EmpId);
                 parameters.Add("@LoanTypeId", model.LoanTypeId);
-                parameters.Add("@LoanNo", model.LoanNo);
+              //  parameters.Add("@LoanNo", model.LoanNo);
                 parameters.Add("@LoanAmount", model.LoanAmount);
                 parameters.Add("@TotalInst", 0); // Will be calculated in the SP
                 parameters.Add("@InstAmount", model.InstAmount);
@@ -1265,7 +1305,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@SNo", sNo);
 
                 // Optional/Unused parameters (set as null)
-                parameters.Add("@LoanNo", dbType: DbType.String, size: 20, direction: ParameterDirection.Input, value: null);
+                //parameters.Add("@LoanNo", dbType: DbType.String, size: 20, direction: ParameterDirection.Input, value: null);
                 parameters.Add("@LoanAmount", dbType: DbType.Decimal, direction: ParameterDirection.Input, value: null);
                 parameters.Add("@TotalInst", dbType: DbType.Int32, direction: ParameterDirection.Input, value: null);
                 parameters.Add("@InstAmount", dbType: DbType.Decimal, direction: ParameterDirection.Input, value: null);

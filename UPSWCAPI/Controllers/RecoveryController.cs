@@ -45,7 +45,7 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpPost("NAFEDReport")]
-        
+
         public async Task<IActionResult> NAFEDReport([FromBody] NAFEDReportRequest model)
         {
             try
@@ -53,7 +53,7 @@ namespace UPSWCAPI.Controllers
                 using var connection = _context.Database.GetDbConnection();
                 await connection.OpenAsync();
                 //using var connection = new SqlConnection(Configuration.GetConnectionString("DefaultConnection"));
-               // await connection.OpenAsync();
+                // await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@warehouseid", model.WarehouseId);
@@ -87,7 +87,7 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpPost("NAFEDInsurnaceReport")]
-        
+
         public async Task<IActionResult> NAFEDInsurnaceReport([FromBody] NAFEDReportRequest model)
         {
             try
@@ -95,7 +95,7 @@ namespace UPSWCAPI.Controllers
                 using var connection = _context.Database.GetDbConnection();
                 await connection.OpenAsync();
                 //using var connection = new SqlConnection(Configuration.GetConnectionString("DefaultConnection"));
-               // await connection.OpenAsync();
+                // await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@warehouseid", model.WarehouseId);
@@ -145,8 +145,9 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@BillYear", model.BillYear);
                 parameters.Add("@Userid", model.UesrId);
                 //parameters.Add("@ProcId", model.ProcId);
-                
+
                 await connection.ExecuteAsync("sp_CalDailyStorageCharges_Nafed", parameters, commandType: CommandType.StoredProcedure);
+
 
                 return Ok(new { success = true, message = "Bill generated successfully (default month/year used)." });
             }
@@ -162,7 +163,7 @@ namespace UPSWCAPI.Controllers
         [HttpPost("NAFEDForwardReport")]
 
         public async Task<IActionResult> NAFEDForwardReport([FromBody] NAFEDReportRequest model)
-            {
+        {
             try
             {
                 using var connection = _context.Database.GetDbConnection();
@@ -178,8 +179,8 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@YearId", model.YearId);
                 parameters.Add("@BillStatusId", 0);
                 parameters.Add("@Remark", model.Remark);
-                parameters.Add("@ProcId", model.ProcId);              
-            
+                parameters.Add("@ProcId", model.ProcId);
+
 
 
                 var result = await connection.QueryAsync("Proc_NAFEDRpt", parameters, commandType: CommandType.StoredProcedure);
