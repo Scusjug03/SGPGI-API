@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Reflection.Emit;
@@ -1446,7 +1447,8 @@ namespace UPSWCAPI.Controllers
 
         #region Case Registration
         [HttpPost("SaveCase")]
-        public async Task<IActionResult> SaveCase([FromForm] IFormFile? caseFile, [FromForm] string userData)
+        public async Task<IActionResult> SaveCase([FromForm] IFormFile? caseFile,[FromForm] IFormFile? narrativeDoc, [FromForm] IFormFile? vakalatnamaDoc,
+            [FromForm] string userData)
         {
             try
             {
@@ -1467,19 +1469,47 @@ namespace UPSWCAPI.Controllers
 
                     data.CaseFile = "/Uploads/UserProfile/" + fileName;
                 }
+                if  (narrativeDoc != null && narrativeDoc.Length > 0)
+                    {
+                        string folderPath = Path.Combine(Environment.ContentRootPath, "Uploads/UserProfile");
+                        if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(narrativeDoc.FileName);
+                        string fullPath = Path.Combine(folderPath, fileName);
+
+                        using (var stream = new FileStream(fullPath, FileMode.Create))
+                            await narrativeDoc.CopyToAsync(stream);
+
+                        data.NarrativeDoc = "/Uploads/UserProfile/" + fileName;
+                }
+                if (vakalatnamaDoc != null && vakalatnamaDoc.Length > 0)
+                {
+                    string folderPath = Path.Combine(Environment.ContentRootPath, "Uploads/UserProfile");
+                    if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(vakalatnamaDoc.FileName);
+                    string fullPath = Path.Combine(folderPath, fileName);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                        await vakalatnamaDoc.CopyToAsync(stream);
+
+                    data.VakalatnamaDoc = "/Uploads/UserProfile/" + fileName;
+                }
 
                 // Convert lists to XML
                 var xmlApplicants = new XElement("CaseApplicant", data.Petitioners.Select(p =>
-                    new XElement("XmlCaseApplicant",
-                        new XElement("EmpId", p.EmpId),
-                        new XElement("Another", p.Another),
-                        new XElement("DesignationId", p.DesignationId),
-                        new XElement("DepartmentId", p.DepartmentId)
-                    )
-                ));
+                            new XElement("XmlCaseApplicant",
+                             new XElement("GovDeptId", p.GovDeptId),
+                                new XElement("EmpId", p.EmpId),
+                                new XElement("Another", p.Another),
+                                new XElement("DesignationId", p.DesignationId),
+                                new XElement("DepartmentId", p.DepartmentId)
+                            )
+                        ));
 
                 var xmlRespondents = new XElement("NonCaseApplicant", data.Respondents.Select(r =>
                     new XElement("NonXmlCaseApplicant",
+                     new XElement("GovDeptId", r.GovDeptId),
                         new XElement("EmpId", r.EmpId),
                         new XElement("Another", r.Another),
                         new XElement("DesignationId", r.DesignationId),
@@ -1522,6 +1552,8 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@XMLCaseApplicant", xmlApplicants.ToString());
                 parameters.Add("@XMLCaseNonApplicant", xmlRespondents.ToString());
                 parameters.Add("@XMLAssignDepartment", xmlAssign.ToString());
+                parameters.Add("@NarrativeDoc", data.NarrativeDoc ?? "");
+                parameters.Add("@VakalatnamaDoc", data.VakalatnamaDoc ?? "");
                 parameters.Add("@UserId", 1);
                 parameters.Add("@ProcID", 1);
 
@@ -1578,28 +1610,13 @@ namespace UPSWCAPI.Controllers
                 dbparams.Add("RegistrationId", registrationId);
                 dbparams.Add("LCCodes", LCCodes ?? "");
 
-                using var multi = await connection.QueryMultipleAsync(
+                var caseDetail = await connection.QueryFirstOrDefaultAsync<GetAllCase>(
                     "PROC_CaseRegistrationDetails", dbparams, commandType: CommandType.StoredProcedure);
-
-                
-                var caseDetail = await multi.ReadFirstOrDefaultAsync<CaseRegistrationVM>();
 
                 if (caseDetail == null)
                 {
                     return NotFound(new { success = false, message = "Case not found" });
                 }
-
-                
-                var petitioners = (await multi.ReadAsync<PetitionerVM>()).ToList();
-                caseDetail.Petitioners = petitioners;
-
-                
-                var respondents = (await multi.ReadAsync<RespondentVM>()).ToList();
-                caseDetail.Respondents = respondents;
-
-                
-                var counsels = (await multi.ReadAsync<StandingCounselVM>()).ToList();
-                caseDetail.StandingCounsels = counsels;
 
                 return Ok(new { success = true, data = caseDetail });
             }
@@ -1615,7 +1632,8 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpPost("UpdateCase")]
-        public async Task<IActionResult> UpdateCase([FromForm] IFormFile? caseFile, [FromForm] string userData)
+        public async Task<IActionResult> UpdateCase([FromForm] IFormFile? caseFile,
+            [FromForm] IFormFile? narrativeDoc, [FromForm] IFormFile? vakalatnamaDoc, [FromForm] string userData)
         {
             try
             {
@@ -1636,8 +1654,36 @@ namespace UPSWCAPI.Controllers
                     data.CaseFile = "/Uploads/UserProfile/" + fileName;
                 }
 
+                if (narrativeDoc != null && narrativeDoc.Length > 0)
+                {
+                    string folderPath = Path.Combine(Environment.ContentRootPath, "Uploads/UserProfile");
+                    if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(narrativeDoc.FileName);
+                    string fullPath = Path.Combine(folderPath, fileName);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                        await narrativeDoc.CopyToAsync(stream);
+
+                    data.NarrativeDoc = "/Uploads/UserProfile/" + fileName;
+                }
+                if (vakalatnamaDoc != null && vakalatnamaDoc.Length > 0)
+                {
+                    string folderPath = Path.Combine(Environment.ContentRootPath, "Uploads/UserProfile");
+                    if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(vakalatnamaDoc.FileName);
+                    string fullPath = Path.Combine(folderPath, fileName);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                        await vakalatnamaDoc.CopyToAsync(stream);
+
+                    data.VakalatnamaDoc = "/Uploads/UserProfile/" + fileName;
+                }
+
                 var xmlApplicants = new XElement("CaseApplicant", data.Petitioners.Select(p =>
                     new XElement("XmlCaseApplicant",
+                        new XElement("GovDeptId", p.GovDeptId),
                         new XElement("EmpId", p.EmpId),
                         new XElement("Another", p.Another),
                         new XElement("DesignationId", p.DesignationId),
@@ -1647,6 +1693,7 @@ namespace UPSWCAPI.Controllers
 
                 var xmlRespondents = new XElement("NonCaseApplicant", data.Respondents.Select(r =>
                     new XElement("NonXmlCaseApplicant",
+                        new XElement("GovDeptId", r.GovDeptId),
                         new XElement("EmpId", r.EmpId),
                         new XElement("Another", r.Another),
                         new XElement("DesignationId", r.DesignationId),
@@ -1689,6 +1736,8 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@XMLCaseApplicant", xmlApplicants.ToString());
                 parameters.Add("@XMLCaseNonApplicant", xmlRespondents.ToString());
                 parameters.Add("@XMLAssignDepartment", xmlAssign.ToString());
+                parameters.Add("@NarrativeDoc", data.NarrativeDoc ?? "");
+                parameters.Add("@VakalatnamaDoc", data.VakalatnamaDoc ?? "");
                 parameters.Add("@UserId", 1);
                 parameters.Add("@ProcID", 4); 
 
@@ -1742,6 +1791,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@FromDate", model.FromDate ?? "");
                 parameters.Add("@ToDate", model.ToDate ?? "");
                 parameters.Add("@ProcId", model.ProcId); 
+                parameters.Add("@RegistrationId", model.RegistrationId); 
 
                 var result = await connection.QueryAsync<dynamic>(
                     "PROC_CaseHearingDetails", 
@@ -1789,6 +1839,8 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@HearingDate", model.HearingDate ?? "");
                 parameters.Add("@NextHearingRemark", model.NextHearingRemark ?? "");
                 parameters.Add("@HearingFile", savedFilePath ?? "");
+                parameters.Add("@OrdertypeId", model.OrdertypeId);
+                parameters.Add("@CaseStatusId", model.CaseStatusId);
                 parameters.Add("@Procid", 1);
                 parameters.Add("@UserId", model.UserId); 
 
@@ -1804,6 +1856,324 @@ namespace UPSWCAPI.Controllers
 
 
         #endregion
+
+
+
+        [HttpPost("SaveFillCounter")]
+        public async Task<IActionResult> SaveFillCounter([FromForm] FillCounterModel model)
+        {
+            try
+            {
+                string? savedFilePath = null;
+
+                if (model.CounterFile != null && model.CounterFile.Length > 0)
+                {
+                    string folderPath = Path.Combine(Environment.ContentRootPath, "Uploads/UserProfile");
+                    if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.CounterFile.FileName);
+                    string fullPath = Path.Combine(folderPath, fileName);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                        await model.CounterFile.CopyToAsync(stream);
+
+                    savedFilePath = "/Uploads/UserProfile/" + fileName;
+                }
+
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Id", 0);
+                parameters.Add("@RegistrationId", model.RegistrationId);
+                parameters.Add("@CounterTypeId", model.CounterTypeId);
+                parameters.Add("@CounterDate", model.CounterDate ?? "");
+                parameters.Add("@CounterNo", model.CounterNo ?? "");
+                parameters.Add("@CounterRemark", model.CounterRemark ?? "");
+                parameters.Add("@CounterFile", savedFilePath ?? "");
+                parameters.Add("@UserId", model.UserId);
+                parameters.Add("@Procid", 1);
+
+                await connection.ExecuteAsync("PROC_FillCounter", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpPost("SaveFillApplication")]
+        public async Task<IActionResult> SaveFillApplication([FromForm] FillApplicationModel model)
+        {
+            try
+            {
+                string? savedApplicationFilePath = null;
+                string? savedAppReplyFilePath = null;
+
+                string folderPath = Path.Combine(Environment.ContentRootPath, "Uploads/UserProfile");
+                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                // ✅ Save ApplicationFile
+                if (model.ApplicationFile != null && model.ApplicationFile.Length > 0)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ApplicationFile.FileName);
+                    string fullPath = Path.Combine(folderPath, fileName);
+
+                    using var stream = new FileStream(fullPath, FileMode.Create);
+                    await model.ApplicationFile.CopyToAsync(stream);
+
+                    savedApplicationFilePath = "/Uploads/UserProfile/" + fileName;
+                }
+
+              
+                if (model.AppReplyFile != null && model.AppReplyFile.Length > 0)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.AppReplyFile.FileName);
+                    string fullPath = Path.Combine(folderPath, fileName);
+
+                    using var stream = new FileStream(fullPath, FileMode.Create);
+                    await model.AppReplyFile.CopyToAsync(stream);
+
+                    savedAppReplyFilePath = "/Uploads/UserProfile/" + fileName;
+                }
+
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Id", 0);
+                parameters.Add("@RegistrationId", model.RegistrationId);
+                parameters.Add("@ApplicationTypeId", model.ApplicationTypeId);
+                parameters.Add("@ApplicationDate", model.ApplicationDate ?? "");
+                parameters.Add("@ApplicationNo", model.ApplicationNo ?? "");
+                parameters.Add("@ApplicationRemark", model.ApplicationRemark ?? "");
+                parameters.Add("@AppSubmittedBy", model.AppSubmittedBy);
+                parameters.Add("@AppReplyRemark", model.AppReplyRemark ?? "");
+                parameters.Add("@ApplicationFile", savedApplicationFilePath ?? "");
+                parameters.Add("@AppReplyFile", savedAppReplyFilePath ?? ""); // ✅ New param
+                parameters.Add("@UserId", model.UserId);
+                parameters.Add("@Procid", 1);
+
+                await connection.ExecuteAsync("PROC_FillApplication", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpPost("SaveMergeCases")]
+        public async Task<IActionResult> SaveMergeCases([FromForm] MergeCaseModel model)
+        {
+            try
+            {
+                string? savedFilePath = null;
+
+                if (model.MergeFile != null && model.MergeFile.Length > 0)
+                {
+                    string folderPath = Path.Combine(Environment.ContentRootPath, "Uploads/UserProfile");
+                    if (!Directory.Exists(folderPath))
+                        Directory.CreateDirectory(folderPath);
+
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.MergeFile.FileName);
+                    string fullPath = Path.Combine(folderPath, fileName);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                        await model.MergeFile.CopyToAsync(stream);
+
+                    savedFilePath = "/Uploads/UserProfile/" + fileName;
+                }
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@RegistrationId", model.RegistrationId);
+                parameters.Add("@MergeTitle", model.MergeTitle);
+                parameters.Add("@MergeDate", model.MergeDate);
+                parameters.Add("@MergeFile", savedFilePath);
+                parameters.Add("@NoofCase", model.NoofCase);
+                parameters.Add("@XML", model.XML);
+                parameters.Add("@ProcId", model.ProcId);
+                parameters.Add("@Msg", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                await connection.ExecuteAsync("Proc_MergeCase", parameters, commandType: CommandType.StoredProcedure);
+
+                var msg = parameters.Get<string>("@Msg");
+                return Ok(new { success = true, message = msg });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost("GetAllMergeCase")]
+        public async Task<IActionResult> GetAllMergeCase([FromBody] CaseHearingRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@FromDate", model.FromDate ?? "");
+                parameters.Add("@ToDate", model.ToDate ?? "");
+                parameters.Add("@ProcId", model.ProcId);
+                parameters.Add("Msg", dbType: DbType.String, size: 100, direction: ParameterDirection.Output);
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "Proc_MergeCase",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("GetDashboardData")]
+        public async Task<IActionResult> GetDashboardData([FromBody] LegalDashboardRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Id", model.Id);
+                parameters.Add("@ProcId", model.ProcId);
+
+                var result = await connection.QueryAsync<dynamic>(
+                   "Proc_LegalDashboard",
+                   parameters,
+                   commandType: CommandType.StoredProcedure
+               );
+               
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("GetCaseRegistrationDetails")]
+        public async Task<IActionResult> GetCaseRegistrationDetails([FromBody] FillApplicationModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@RegistrationId", model.RegistrationId);
+                parameters.Add("@ProcId", 6); // for detailed case report
+                parameters.Add("@LCCodes", "");
+
+
+                var result = await connection.QueryMultipleAsync(
+                    "PROC_CaseRegistrationDetails",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                var caseDetails = await result.ReadFirstOrDefaultAsync();
+                var petitioners = (await result.ReadAsync()).ToList();
+                var respondents = (await result.ReadAsync()).ToList();
+                var standingCounsel = (await result.ReadAsync()).ToList();
+                var fillApplicant = (await result.ReadAsync()).ToList();
+                var fillCounter = (await result.ReadAsync()).ToList();
+                var fillHearing = (await result.ReadAsync()).ToList();
+                
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        caseDetails,
+                        petitioners,
+                        respondents,
+                        standingCounsel,
+                        fillApplicant,
+                        fillCounter,
+                        fillHearing
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("GetStandingCounselReport")]
+        public async Task<IActionResult> GetStandingCounselReport([FromBody] LegalMisReport model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", model.ProcId);
+                parameters.Add("@LCNo", model.LCNo ?? string.Empty);
+                parameters.Add("@FromDate", model.FromDate ?? string.Empty);
+                parameters.Add("@ToDate", model.ToDate ?? string.Empty);
+
+
+                var result = await connection.QueryAsync<dynamic>(
+                   "Proc_LegalCaseMISReport",
+                   parameters,
+                   commandType: CommandType.StoredProcedure
+               );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("GetCaseDetailReport")]
+        public async Task<IActionResult> GetCaseDetailReport([FromBody] LegalMisReport model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", model.ProcId);
+                parameters.Add("@LCNo", model.LCNo ?? string.Empty);
+                parameters.Add("@FromDate", model.FromDate ?? string.Empty);
+                parameters.Add("@ToDate", model.ToDate ?? string.Empty);
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "Proc_LegalCaseMISReport",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
 
     }
 }

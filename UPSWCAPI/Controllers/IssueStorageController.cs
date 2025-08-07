@@ -32,7 +32,7 @@ namespace UPSWCAPI.Controllers
                 //parameters.Add("@IssueDate", issue.IssueDate);
                 //parameters.Add("@WarehouseId", issue.WarehouseId);
                 //parameters.Add("@SerialNumber", issue.SerialNumber);
-                //parameters.Add("@LotNumber", issue.LotNumber);
+                //parameters.Add("@LotNumber", issue.LotNumber );
                 //parameters.Add("@CommodityId", issue.CommodityId);
                 //parameters.Add("@AgencyTypeId", issue.AgencyTypeId);
                 //parameters.Add("@SenderName", issue.SenderName);

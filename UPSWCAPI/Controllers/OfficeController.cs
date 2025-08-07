@@ -579,7 +579,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@CoUnionInsurance", model.CoUnionInsurance);
                 parameters.Add("@NSF", model.NSF);
                 parameters.Add("@EleCharges", model.EleCharges);
-                parameters.Add("@HatkarghaNigamAdv", model.HatkarghaNigamAdv);
+                parameters.Add("@HouseRent", model.HatkarghaNigamAdv);
                 // parameters.Add("@FestivalAdv", model.FestivalAdv);
                 // parameters.Add("@Genloan", model.Genloan);
                 // parameters.Add("@GenLoanInt", model.GenLoanInt);
@@ -632,7 +632,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@CoUnionInsurance", model.CoUnionInsurance);
                 parameters.Add("@NSF", model.NSF);
                 parameters.Add("@EleCharges", model.EleCharges);
-                parameters.Add("@HatkarghaNigamAdv", model.HatkarghaNigamAdv);
+                parameters.Add("@HouseRent", model.HatkarghaNigamAdv);
                 // parameters.Add("@FestivalAdv", model.FestivalAdv);
                 //  parameters.Add("@Genloan", model.Genloan);
                 //  parameters.Add("@GenLoanInt", model.GenLoanInt);
@@ -656,7 +656,6 @@ namespace UPSWCAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
             }
         }
-
 
         #endregion
 
@@ -1484,7 +1483,215 @@ namespace UPSWCAPI.Controllers
         }
 
 
-        #endregion 
+        #endregion
 
+        #region Arpit
+        #region For Show Increment Data
+
+        [HttpPost("GenIncrementDataList")]
+
+        public async Task<IActionResult> GenIncrementDataList(int ProcId = 0, int subDeptID = 0, int IncDt = 0, int officeid = 0)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                int currentYear = DateTime.Now.Year;
+                int nextYear = currentYear;
+                string month = IncDt == 1 ? "01" : "07";
+                string incrementDate = $"01/{month}/{nextYear}";
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", ProcId);
+                parameters.Add("@RegType", subDeptID);
+                parameters.Add("@IncDt", incrementDate);
+                if (officeid == 1)
+                {
+                    parameters.Add("@Userid", 0);
+                }
+                else
+                {
+                    parameters.Add("@Userid", officeid);
+                }
+
+                parameters.Add("Msg", dbType: DbType.String, size: 100, direction: ParameterDirection.Output);
+
+                var result = await connection.QueryAsync<dynamic>("Sp_GetIncrement", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Failed to load applicants",
+                    error = ex.Message
+                });
+            }
+        }
+
+
+        [HttpPost("finalize")]
+        public async Task<IActionResult> finalize([FromBody] UserDto model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Userid", model.UserId); // Match your stored procedure parameter name
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "SP_InsertIncrement",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Failed to finalize increment",
+                    error = ex.Message
+                });
+            }
+        }
+
+
+        [HttpPost("FinalizeIncrement")]
+        public async Task<IActionResult> FinalizeIncrement([FromBody] List<IncrementDto> data)
+        {
+            if (data == null || !data.Any())
+                return BadRequest(new { success = false, message = "No increment data provided." });
+
+            try
+            {
+                var userId = Convert.ToInt32(data.First().UserId);
+
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                await connection.ExecuteAsync("DELETE FROM TempInrement WHERE UserId = @UserId", new { UserId = userId });
+
+                var table = new DataTable();
+                table.Columns.AddRange(new[]
+                {
+            new DataColumn("Userid", typeof(int)),
+            new DataColumn("Empid", typeof(int)),
+            new DataColumn("Levelid", typeof(int)),
+            new DataColumn("IncrementId", typeof(int)),
+            new DataColumn("Monthid", typeof(int)),
+            new DataColumn("Yearid", typeof(int)),
+            new DataColumn("BasicSalary", typeof(decimal)),
+            new DataColumn("PreIncrementId", typeof(int)),
+            new DataColumn("PoIncrementId", typeof(int)),
+            new DataColumn("PreBasic", typeof(decimal)),
+            new DataColumn("PostBasic", typeof(decimal)),
+            new DataColumn("GradePay", typeof(int)),
+            new DataColumn("DepartmentHead", typeof(string)),
+            new DataColumn("empname", typeof(string)),
+            new DataColumn("fathername", typeof(string)),
+            new DataColumn("designationname", typeof(string))
+        });
+
+                foreach (var row in data)
+                {
+                    try
+                    {
+                        table.Rows.Add(
+                            Convert.ToInt32(row.UserId),
+                            Convert.ToInt32(row.Empid),
+                            Convert.ToInt32(row.LevelId),
+                              Convert.ToInt32(0),
+                            Convert.ToInt32(row.MonthId),
+                            Convert.ToInt32(row.YearId),
+                           Convert.ToInt32(0),
+                            Convert.ToInt32(row.PreIncrementId),
+                            Convert.ToInt32(row.PoIncrementId),
+                            Convert.ToDecimal(row.PreBasic),
+                            Convert.ToDecimal(row.PostBasic),
+                            Convert.ToInt32(row.GradePay),
+                            row.DepartmentHead ?? string.Empty,
+                            row.EmpName ?? string.Empty,
+                            row.FatherName ?? string.Empty,
+                            row.DesignationName ?? string.Empty
+                        );
+                    }
+                    catch (Exception exRow)
+                    {
+                        return BadRequest(new { success = false, message = $"Error in EmpId {row?.Empid}", error = exRow.Message });
+                    }
+                }
+
+                if (connection is SqlConnection sqlConn)
+                {
+                    using var bulkCopy = new SqlBulkCopy(sqlConn)
+                    {
+                        DestinationTableName = "dbo.TempInrement"
+                    };
+                    await bulkCopy.WriteToServerAsync(table);
+                }
+
+                return Ok(new { success = true, message = "Selected data inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Bulk insert failed.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("GetIncrementReport")]
+        public async Task<IActionResult> GetIncrementReport(int subDeptID, int IncDt, int officeid, int departmentID, int wtypeId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                int currentYear = DateTime.Now.Year;
+                int nextYear = currentYear;
+                string month = IncDt == 1 ? "01" : "07";
+                string incrementDate = $"01/{month}/{nextYear}";
+                var parameters = new DynamicParameters();
+                parameters.Add("@Year", currentYear);
+                if (officeid == 1)
+                {
+                    parameters.Add("@Userid", 0);
+                }
+                else
+                {
+                    parameters.Add("@Userid", officeid);
+                }
+                parameters.Add("@Date", incrementDate);
+                parameters.Add("@SubDeptId", subDeptID);
+                parameters.Add("@MonthId", month);
+
+
+                //parameters.Add("Msg", dbType: DbType.String, size: 100, direction: ParameterDirection.Output);
+
+                var result = await connection.QueryAsync<dynamic>("Proc_Increment", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Failed to fetch increment report.",
+                    error = ex.Message
+                });
+            }
+        }
+
+        #endregion
+
+        #endregion
     }
 }

@@ -58,4 +58,54 @@ namespace UPSWCAPI.Model
         public int Levelid { get; set; }
         public string? msg { get; set; }
     }
+    public class CircleMaster
+    {
+        public int CircleId { get; set; }
+        public string? CircleName { get; set; }
+        public string? msg { get; set; }
+    }
+
+    public class AgencyMaster
+    {
+        public int AgencyId { get; set; }
+        public string? AgencyName { get; set; }
+        public string? msg { get; set; }
+    }
+
+    public class EmploymentModel
+    {
+        public int employementid { get; set; }
+        public string? employement { get; set; }
+        public int wtypeid { get; set; }
+        public string? componentcode { get; set; }
+        public string? workingtype { get; set; }
+    }
+    public class Subdepartment
+    {
+        public int subdepartmentId { get; set; }
+        public string? subdepartment { get; set; }
+        public int departmentId { get; set; }
+        public string? componentcode { get; set; }
+        public string? departmentname { get; set; }
+    }
+
+    public class FinancialYearMaster
+    {
+        public int financialyearcode { get; set; }
+        public string? financialYear { get; set; }
+    }
+
+    public class M_ApplicationTypeMaster
+    {
+        public int Appid { get; set; }
+        public string? AppType { get; set; }
+        public string? msg { get; set; }
+    }
+    public class M_CounterTypeMaster
+    {
+        public int Appid { get; set; }
+        public string? AppType { get; set; }
+        public string? msg { get; set; }
+    }
+
 }

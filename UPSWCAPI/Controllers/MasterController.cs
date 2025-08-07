@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text; 
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dapper;
@@ -36,7 +36,7 @@ namespace UPSWCAPI.Controllers
         private readonly IDapper _dapper;
         private IWebHostEnvironment Environment;
         private IConfiguration Configuration;
-     
+
         public MasterController(IConfiguration _configuration, EnquiryDbContext context, IWebHostEnvironment _environment, IDapper dapper)
         {
             Environment = _environment;
@@ -81,16 +81,16 @@ namespace UPSWCAPI.Controllers
                 responseObj.data = list;
                 responseObj.result = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                
+
                 responseObj.message = ex.Message;
             }
             return responseObj;
 
         }
 
-        
+
 
         //public List<ModuleMaster> GetAllModuleList(ModuleMaster model)
         //{
@@ -106,7 +106,7 @@ namespace UPSWCAPI.Controllers
 
         [HttpPost("GetAllModuleList")]
         public async Task<IEnumerable<ModuleMaster>> GetAllModuleList([FromBody] ModuleMaster model)
-        {   
+        {
             var dbparams = new DynamicParameters();
             dbparams.Add("ProjectId", model.projectId, DbType.Int32);
             dbparams.Add("ModuleName", model.moduleName, DbType.String);
@@ -143,9 +143,9 @@ namespace UPSWCAPI.Controllers
         }
 
 
-        [HttpPut("UpdateModule")]      
-         public async Task<ModuleMaster> UpdateModule(ModuleMaster model)
-         {
+        [HttpPut("UpdateModule")]
+        public async Task<ModuleMaster> UpdateModule(ModuleMaster model)
+        {
             var dbparams = new DynamicParameters();
             dbparams.Add("ModuleId", model.moduleId, DbType.Int32);
             dbparams.Add("ProjectId", model.projectId, DbType.Int32);
@@ -162,11 +162,11 @@ namespace UPSWCAPI.Controllers
 
 
         [HttpPut("DeleteEnquiryById")]
-        public async Task<ModuleMaster> DeleteEnquiryById(ModuleMaster model)        
+        public async Task<ModuleMaster> DeleteEnquiryById(ModuleMaster model)
         {
             var dbparams = new DynamicParameters();
 
-            dbparams.Add("ModuleId", model.moduleId, DbType.Int32);           
+            dbparams.Add("ModuleId", model.moduleId, DbType.Int32);
             dbparams.Add("ProcId", 6);
             var result = await Task.FromResult(_dapper.Get<ModuleMaster>("[dbo].[Proc_MenuMaster]", dbparams,
                 commandType: CommandType.StoredProcedure));
@@ -355,7 +355,7 @@ namespace UPSWCAPI.Controllers
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcId", 4);
                 parameters.Add("@UserId", id);
-               
+
                 await connection.ExecuteAsync("[dbo].[Proc_OfficeAdmin]", parameters, commandType: CommandType.StoredProcedure);
 
                 return Ok(new { success = true, message = "Office deleted successfully." });
@@ -603,7 +603,7 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
-                parameters.Add("@ProcId", 6); 
+                parameters.Add("@ProcId", 6);
                 parameters.Add("@userid", userid);
 
                 var result = await connection.ExecuteAsync("[dbo].[Proc_RoleMaster]", parameters, commandType: CommandType.StoredProcedure);
@@ -1832,6 +1832,828 @@ namespace UPSWCAPI.Controllers
         #endregion
 
 
-       
+        #region Dilip
+        #region Circle Master
+        [HttpPost("InsertCircleType")]
+        public async Task<IActionResult> InsertCircleType([FromBody] CircleMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@CircleId", model.CircleId);
+                parameters.Add("@CircleName", model.CircleName ?? string.Empty);
+                await connection.ExecuteAsync("[dbo].[Proc_CircleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Circle Type inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("GetAllCircleType")]
+        public async Task<IActionResult> GetAllCircleType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@CircleName", "");
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_CircleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("GetCircleTypeById/{CircleId}")]
+        public async Task<IActionResult> GetCircleTypeById(int CircleId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@CircleId", CircleId);
+                parameters.Add("@CircleName", "");
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_CircleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpPut("UpdateCircleType")]
+        public async Task<IActionResult> UpdateCircleType([FromBody] CircleMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+                parameters.Add("@CircleId", model.CircleId);
+                parameters.Add("@CircleName", model.CircleName ?? string.Empty);
+                await connection.ExecuteAsync("[dbo].[Proc_CircleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Circle Type updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpDelete("DeleteCircleType/{id}")]
+        public async Task<IActionResult> DeleteCircleType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@CircleId", id);
+                parameters.Add("@CircleName", "");
+
+                await connection.ExecuteAsync("[dbo].[Proc_CircleType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Circle Type deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+        #region AgencyMaster
+        [HttpPost("InsertAgencyType")]
+        public async Task<IActionResult> InsertAgencyType([FromBody] AgencyMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@AgencyId", model.AgencyId);
+                parameters.Add("@AgencyName", model.AgencyName ?? string.Empty);
+                await connection.ExecuteAsync("[dbo].[Proc_AgencyType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Agency Type inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet("GetAllAgencyType")]
+        public async Task<IActionResult> GetAllAgencyType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@AgencyName", "");
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_AgencyType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet("GetAgencyTypeById/{CircleId}")]
+        public async Task<IActionResult> GetAgencyTypeById(int CircleId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@AgencyId", CircleId);
+                parameters.Add("@AgencyName", "");
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_AgencyType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpPut("UpdateAgencyType")]
+        public async Task<IActionResult> UpdateAgencyType([FromBody] AgencyMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+                parameters.Add("@AgencyId", model.AgencyId);
+                parameters.Add("@AgencyName", model.AgencyName ?? string.Empty);
+                await connection.ExecuteAsync("[dbo].[Proc_AgencyType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Agency Type updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpDelete("DeleteAgencyType/{id}")]
+        public async Task<IActionResult> DeleteAgencyType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@AgencyId", id);
+                parameters.Add("@AgencyName", "");
+
+                await connection.ExecuteAsync("[dbo].[Proc_AgencyType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Agency Type deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+
+        #endregion
+
+        #region Arpit
+        #region Employement Master
+        [HttpPost("InsertEmployment")]
+        public async Task<IActionResult> InsertEmployment([FromBody] EmploymentModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@EmployementId", model.employementid);
+                parameters.Add("@Employement", model.employement);
+                parameters.Add("@WTypeId", model.wtypeid);
+                parameters.Add("@ComponentCode", model.componentcode);
+                parameters.Add("@ProcId", 1);
+                await connection.ExecuteAsync("Proc_Employment", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Employment inserted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateEmployment")]
+        public async Task<IActionResult> UpdateEmployment([FromBody] EmploymentModel model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@EmployementId", model.employementid);
+                parameters.Add("@Employement", model.employement);
+                parameters.Add("@WTypeId", model.wtypeid);
+                parameters.Add("@ComponentCode", model.componentcode);
+                parameters.Add("@ProcId", 2);
+
+
+                await connection.ExecuteAsync("Proc_Employment", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Employment updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+
+        [HttpDelete("DeleteEmployment/{id}")]
+
+        public async Task<IActionResult> DeleteEmployment(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@EmployementId", id);
+
+                await connection.ExecuteAsync("Proc_Employment", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Employment deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("GetAllEmployment")]
+        public async Task<IActionResult> GetAllEmployment()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+
+
+                var result = await connection.QueryAsync("Proc_Employment", parameters, commandType: CommandType.StoredProcedure);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("GetEmploymentById/{id}")]
+        public async Task<IActionResult> GetEmploymentById(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@EmployementId", id);
+                parameters.Add("@ProcId", 5);
+
+                var result = await connection.QueryFirstOrDefaultAsync<EmploymentModel>("Proc_Employment", parameters, commandType: CommandType.StoredProcedure);
+
+                if (result == null)
+                {
+                    return NotFound(new { success = false, message = "Subdepartment not found." });
+                }
+                else
+                {
+                    return Ok(new { success = true, data = result });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+#endregion
+
+#region Subdepartment Master
+[HttpPost("InsertSubdepartment")]
+public async Task<IActionResult> InsertSubdepartment([FromBody] Subdepartment model)
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@SubdepartmentId", model.subdepartmentId);
+        parameters.Add("@DepartmentId", model.departmentId);
+        parameters.Add("@Subdepartment", model.subdepartment);
+        parameters.Add("@ComponentCode", model.componentcode);
+        parameters.Add("@ProcId", 1);
+        await connection.ExecuteAsync("Proc_Subdepartment", parameters, commandType: CommandType.StoredProcedure);
+
+        return Ok(new { success = true, message = "Subdepartment inserted successfully." });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+
+[HttpPut("UpdateSubdepartment")]
+public async Task<IActionResult> UpdateSubdepartment([FromBody] Subdepartment model)
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@SubdepartmentId", model.subdepartmentId);
+        parameters.Add("@DepartmentId", model.departmentId);
+        parameters.Add("@Subdepartment", model.subdepartment);
+        parameters.Add("@ComponentCode", model.componentcode);
+        parameters.Add("@ProcId", 4);
+
+        await connection.ExecuteAsync("Proc_Subdepartment", parameters, commandType: CommandType.StoredProcedure);
+
+        return Ok(new { success = true, message = "Subdepartment updated successfully." });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+[HttpGet("GetSubdepartmentById/{id}")]
+public async Task<IActionResult> GetSubdepartmentById(int id)
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@SubdepartmentId", id);
+        
+        parameters.Add("@ProcId", 3); 
+
+        var result = await connection.QueryFirstOrDefaultAsync<Subdepartment>("Proc_Subdepartment", parameters, commandType: CommandType.StoredProcedure);
+
+        if (result == null)
+        { 
+            return NotFound(new { success = false, message = "Subdepartment not found." });
+        }
+        else { 
+        return Ok(new { success = true, data = result });
+        }
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+[HttpGet("GetAllSubdepartments")]
+public async Task<IActionResult> GetAllSubdepartments()
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@ProcId", 2); 
+
+        var result = await connection.QueryAsync("Proc_Subdepartment", parameters, commandType: CommandType.StoredProcedure);
+
+        return Ok(new { success = true, data = result });
+
+
+
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+[HttpDelete("DeleteSubdepartment/{id}")]
+public async Task<IActionResult> DeleteSubdepartment(int id)
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@SubdepartmentId", id);
+        parameters.Add("@ProcId", 5); 
+
+        await connection.ExecuteAsync("Proc_Subdepartment", parameters, commandType: CommandType.StoredProcedure);
+
+        return Ok(new { success = true, message = "Subdepartment deleted successfully." });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+
+
+     
+
+#endregion
+
+
+#region FinYear Master
+[HttpPost("InsertFinancialYear")]
+public async Task<IActionResult> InsertFinancialYear([FromBody] FinancialYearMaster model)
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@FinancialYear", model.financialYear);
+        parameters.Add("@ProcId", 1);
+
+        await connection.ExecuteAsync("Proc_FinancialYearMaster", parameters, commandType: CommandType.StoredProcedure);
+
+        return Ok(new { success = true, message = "Financial year inserted successfully." });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+
+[HttpGet("GetAllFinancialYears")]
+public async Task<IActionResult> GetAllFinancialYears()
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@ProcId", 2);
+
+        var result = await connection.QueryAsync("Proc_FinancialYearMaster", parameters, commandType: CommandType.StoredProcedure);
+        return Ok(new { success = true, data = result });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+[HttpGet("GetFinancialYearById/{id}")]
+public async Task<IActionResult> GetFinancialYearById(int id)
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@FinancialYearCode", id);
+        parameters.Add("@ProcId", 3);
+
+        var result = await connection.QueryFirstOrDefaultAsync<FinancialYearMaster>("Proc_FinancialYearMaster", parameters, commandType: CommandType.StoredProcedure);
+        if (result == null)
+        {
+            return NotFound(new { success = false, message = "FinYear not found." });
+        }
+        else
+        {
+            return Ok(new { success = true, data = result });
+        }
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+      
+[HttpPut("UpdateFinancialYear")]
+public async Task<IActionResult> UpdateFinancialYear([FromBody] FinancialYearMaster model)
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@FinancialYearCode", model.financialyearcode);
+        parameters.Add("@FinancialYear", model.financialYear);
+        parameters.Add("@ProcId", 4);
+
+        await connection.ExecuteAsync("Proc_FinancialYearMaster", parameters, commandType: CommandType.StoredProcedure);
+
+        return Ok(new { success = true, message = "Financial year updated successfully." });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+[HttpDelete("DeleteFinancialYear/{id}")]
+
+public async Task<IActionResult> DeleteFinancialYear(int id)
+{
+    try
+    {
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+        var parameters = new DynamicParameters();
+        parameters.Add("@FinancialYearCode", id);
+        parameters.Add("@ProcId", 5);
+
+        await connection.ExecuteAsync("Proc_FinancialYearMaster", parameters, commandType: CommandType.StoredProcedure);
+
+        return Ok(new { success = true, message = "Financial year deleted successfully." });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { success = false, message = ex.Message });
+    }
+}
+
+
+        #endregion
+
+        #endregion
+
+        #region M_ApplicationType Master
+        [HttpPost("InsertM_ApplicationType")]
+        public async Task<IActionResult> InsertM_ApplicationType([FromBody] M_ApplicationTypeMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@Appid", model.Appid);
+                parameters.Add("@AppType", model.AppType ?? string.Empty);
+                await connection.ExecuteAsync("[dbo].[Proc_M_ApplicationType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Application Type inserted successfully." });
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet("GetAllM_ApplicationType")]
+        public async Task<IActionResult> GetAllM_ApplicationType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@AppType", "");
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_M_ApplicationType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet("GetAllM_ApplicationTypeById/{Appid}")]
+        public async Task<IActionResult> GetAllM_ApplicationTypeById(int Appid)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@Appid", Appid);
+                parameters.Add("@AppType", "");
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_M_ApplicationType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpPut("UpdateM_ApplicationType")]
+        public async Task<IActionResult> UpdateM_ApplicationType([FromBody] M_ApplicationTypeMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+                parameters.Add("@Appid", model.Appid);
+                parameters.Add("@AppType", model.AppType ?? string.Empty);
+                await connection.ExecuteAsync("[dbo].[Proc_M_ApplicationType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Application Type updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpDelete("DeleteApplicationType/{id}")]
+        public async Task<IActionResult> DeleteApplicationType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@Appid", id);
+                parameters.Add("@AppType", "");
+
+                await connection.ExecuteAsync("[dbo].[Proc_M_ApplicationType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Application Type deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+        #region M_CounterType
+        [HttpPost("InsertM_CounterType")]
+        public async Task<IActionResult> InsertM_CounterType([FromBody] M_CounterTypeMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@Appid", model.Appid);
+                parameters.Add("@AppType", model.AppType ?? string.Empty);
+                await connection.ExecuteAsync("[dbo].[Proc_M_CounterType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Counter Type inserted successfully." });
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet("GetAllM_CounterType")]
+        public async Task<IActionResult> GetAllM_CounterType()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@AppType", "");
+
+                var regions = await connection.QueryAsync("[dbo].[Proc_M_CounterType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = regions });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet("GetAllM_CounterTypeById/{Appid}")]
+        public async Task<IActionResult> GetAllM_CounterTypeById(int Appid)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3);
+                parameters.Add("@Appid", Appid);
+                parameters.Add("@AppType", "");
+                var region = await connection.QueryFirstOrDefaultAsync("[dbo].[Proc_M_CounterType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, data = region });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpPut("UpdateM_CounterType")]
+        public async Task<IActionResult> UpdateM_CounterType([FromBody] M_CounterTypeMaster model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);
+                parameters.Add("@Appid", model.Appid);
+                parameters.Add("@AppType", model.AppType ?? string.Empty);
+                await connection.ExecuteAsync("[dbo].[Proc_M_CounterType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Counter Type updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpDelete("DeleteM_CounterType/{id}")]
+        public async Task<IActionResult> DeleteM_CounterType(int id)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 5);
+                parameters.Add("@Appid", id);
+                parameters.Add("@AppType", "");
+
+                await connection.ExecuteAsync("[dbo].[Proc_M_CounterType]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Counter Type deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
+
+
     }
 }
