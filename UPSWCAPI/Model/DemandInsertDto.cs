@@ -7,7 +7,8 @@
         public decimal? OfficeDemandQty { get; set; }
         public decimal? HOAppQty { get; set; }
         public decimal? RmAppQty { get; set; }
-        public string? DemandStatus { get; set; }
+        public int? StatusId { get; set; }
+        public string? Status { get; set; }
         public int? UnitId { get; set; }
         public int? ItemId { get; set; }
         public string? OfficeRemarks { get; set; }

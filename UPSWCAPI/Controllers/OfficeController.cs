@@ -414,7 +414,8 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@ProcId", 1); // 1 for GetById
                 parameters.Add("@EmpId", empId);
 
-                var result = await connection.QueryFirstOrDefaultAsync<EmpMaster>(
+                // Fetch as dynamic
+                var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
                     "Proc_EarningAndDeduction",
                     parameters,
                     commandType: CommandType.StoredProcedure
@@ -1355,81 +1356,81 @@ namespace UPSWCAPI.Controllers
                 if (wTypeId == 2)
                 {
                     query = @$"
-                SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
-                       rt.departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
-                       ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
-                       ed.IncrementId, P.BasicSal AS basicSalary
-                FROM SamvidaPayRegister p
-                LEFT JOIN empdetail ed ON p.EmpId = ed.EmpId
-                LEFT JOIN departmenthead rt ON rt.departmentid = p.departmentid
-                LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
-                LEFT JOIN designation de ON de.designationid = p.desigid
-                WHERE p.Status = 'N' AND ed.WTypeId = 2 AND 
-                      p.OfficeId = @officeId AND 
-                      p.Subdeptid IN (@subDepartmentId) AND 
-                      PayMonth = @month AND 
-                      PayYear = @year AND 
-                      SalaryType = @salaryType 
-                {orderClause}";
+        SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+               rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+               ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+               ed.IncrementId, P.BasicSal AS basicSalary
+        FROM SamvidaPayRegister p
+        LEFT JOIN empdetail ed ON p.EmpId = ed.EmpId
+        LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
+        LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+        LEFT JOIN designation de ON de.designationid = p.desigid
+        WHERE p.Status = 'N' AND ed.WTypeId = 2 AND 
+              p.OfficeId = @officeId AND 
+              p.Subdeptid IN (@subDepartmentId) AND 
+              PayMonth = @month AND 
+              PayYear = @year AND 
+              SalaryType = @salaryType 
+        {orderClause}";
                 }
                 else if (wTypeId == 1)
                 {
                     query = @$"
-                SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
-                       rt.departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
-                       ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
-                       ed.IncrementId, P.BasicSal AS basicSalary
-                FROM PayRegister p
-                INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
-                LEFT JOIN departmenthead rt ON rt.departmentid = p.departmentid
-                LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
-                LEFT JOIN designation de ON de.designationid = p.desigid
-                WHERE p.Status = 'N' AND ed.WTypeId = 1 AND 
-                      p.OfficeId = @officeId AND 
-                      p.Subdeptid IN (@subDepartmentId) AND 
-                      PayMonth = @month AND 
-                      PayYear = @year AND 
-                      SalaryType = @salaryType 
-                {orderClause}";
+        SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+               rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+               ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+               ed.IncrementId, P.BasicSal AS basicSalary
+        FROM PayRegister p
+        INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+        LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
+        LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+        LEFT JOIN designation de ON de.designationid = p.desigid
+        WHERE p.Status = 'N' AND ed.WTypeId = 1 AND 
+              p.OfficeId = @officeId AND 
+              p.Subdeptid IN (@subDepartmentId) AND 
+              PayMonth = @month AND 
+              PayYear = @year AND 
+              SalaryType = @salaryType 
+        {orderClause}";
                 }
                 else if (wTypeId == 5)
                 {
                     query = @$"
-                SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
-                       rt.departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
-                       ed.fathername, de.designationname, 0 AS gradepay, ed.LevelID, 
-                       ed.IncrementId, P.BasicSal AS basicSalary
-                FROM DailyWagesPayRegister p
-                INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
-                LEFT JOIN departmenthead rt ON rt.departmentid = p.departmentid
-                LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
-                LEFT JOIN designation de ON de.designationid = ed.designationid
-                WHERE ISNULL(P.Status, 'N') = 'N' AND ed.WTypeId = 5 AND 
-                      p.OfficeId = @officeId AND 
-                      p.Subdeptid IN (@subDepartmentId) AND 
-                      PayMonth = @month AND 
-                      PayYear = @year 
-                {orderClause}";
+        SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+               rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+               ed.fathername, de.designationname, 0 AS gradepay, ed.LevelID, 
+               ed.IncrementId, P.BasicSal AS basicSalary
+        FROM DailyWagesPayRegister p
+        INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+        LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
+        LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+        LEFT JOIN designation de ON de.designationid = ed.designationid
+        WHERE ISNULL(P.Status, 'N') = 'N' AND ed.WTypeId = 5 AND 
+              p.OfficeId = @officeId AND 
+              p.Subdeptid IN (@subDepartmentId) AND 
+              PayMonth = @month AND 
+              PayYear = @year 
+        {orderClause}";
                 }
                 else if (wTypeId == 4)
                 {
                     query = @$"
-                SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
-                       rt.departmenthead, ed.empname, ISNULL(ed.PPONo,'') DptEmpCode, 
-                       ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
-                       ed.IncrementId, P.BasicSal AS basicSalary
-                FROM PayRegister p
-                INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
-                LEFT JOIN departmenthead rt ON rt.departmentid = p.departmentid
-                LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
-                LEFT JOIN designation de ON de.designationid = p.desigid
-                WHERE p.Status = 'N' AND ed.WTypeId = 4 AND 
-                      p.OfficeId = @officeId AND 
-                      p.Subdeptid IN (@subDepartmentId) AND 
-                      PayMonth = @month AND 
-                      PayYear = @year AND 
-                      SalaryType = @salaryType 
-                {orderClause}";
+        SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+               rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.PPONo,'') DptEmpCode, 
+               ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+               ed.IncrementId, P.BasicSal AS basicSalary
+        FROM PayRegister p
+        INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+        LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
+        LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+        LEFT JOIN designation de ON de.designationid = p.desigid
+        WHERE p.Status = 'N' AND ed.WTypeId = 4 AND 
+              p.OfficeId = @officeId AND 
+              p.Subdeptid IN (@subDepartmentId) AND 
+              PayMonth = @month AND 
+              PayYear = @year AND 
+              SalaryType = @salaryType 
+        {orderClause}";
                 }
 
                 using var connection = _context.Database.GetDbConnection();
@@ -1461,8 +1462,8 @@ namespace UPSWCAPI.Controllers
                 foreach (var empId in model.EmpIds)
                 {
                     var query = @"UPDATE PayRegister 
-                          SET Status = @Status 
-                          WHERE EmpId = @EmpId AND PayMonth = @FinalMonth AND PayYear = @FinalYear AND SalaryType = @SalaryType";
+                  SET Status = @Status 
+                  WHERE EmpId = @EmpId AND PayMonth = @FinalMonth AND PayYear = @FinalYear AND SalaryType = @SalaryType";
 
                     await connection.ExecuteAsync(query, new
                     {

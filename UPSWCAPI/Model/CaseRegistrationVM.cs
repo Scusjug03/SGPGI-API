@@ -142,4 +142,12 @@ namespace UPSWCAPI.Model
         public string CaseNo { get; set; } = string.Empty;
         public string CourtType { get; set; } = string.Empty;
     }
+
+    public class LegalStandingCounsilReport
+    {
+        public int ProcId { get; set; }
+        public int CourtTypeId { get; set; }
+        public int CourtId { get; set; }
+        public int UserId { get; set; }
+    }
 }

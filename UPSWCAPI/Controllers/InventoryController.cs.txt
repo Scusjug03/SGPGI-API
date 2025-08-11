@@ -633,7 +633,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@Itemid", 0);
                 parameters.Add("@Rackno", model.Rackno);
                 parameters.Add("@ItemName", model.ItemName);
-                parameters.Add("@ManufctName", model.ManufctName);
+                parameters.Add("@ManufactureID", model.ManufactureID);
                 parameters.Add("@ModelId", model.ModelId);
                 parameters.Add("@SetID", model.SetID);
                 parameters.Add("@SetQty", model.SetQty);
@@ -666,7 +666,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@Itemid", model.Itemid);
                 parameters.Add("@Rackno", model.Rackno);
                 parameters.Add("@ItemName", model.ItemName);
-                parameters.Add("@ManufctName", model.ManufctName);
+                parameters.Add("@ManufactureID", model.ManufactureID);
                 parameters.Add("@ModelId", model.ModelId);
                 parameters.Add("@SetID", model.SetID);
                 parameters.Add("@SetQty", model.SetQty);
@@ -699,7 +699,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@Itemid", id);
                 parameters.Add("@Rackno", null);
                 parameters.Add("@ItemName", null);
-                parameters.Add("@ManufctName", null);
+                parameters.Add("@ManufactureID", 0);
                 parameters.Add("@ModelId", 0);
                 parameters.Add("@SetID", 0);
                 parameters.Add("@SetQty", 0); 
@@ -734,7 +734,7 @@ namespace UPSWCAPI.Controllers
                 //parameters.Add("@Itemid", id);
                 parameters.Add("@Rackno", null);
                 parameters.Add("@ItemName", null);
-                parameters.Add("@ManufctName", null);
+                parameters.Add("@ManufactureID", 0);
                 parameters.Add("@ModelId", 0);
                 parameters.Add("@SetID", 0);
                 parameters.Add("@SetQty", 0);
@@ -767,7 +767,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@Itemid", id);
                 parameters.Add("@Rackno", null);
                 parameters.Add("@ItemName", null);
-                parameters.Add("@ManufctName", null);
+                parameters.Add("@ManufactureID", 0);
                 parameters.Add("@ModelId", 0);
                 parameters.Add("@SetID", 0);
                 parameters.Add("@SetQty", 0);
@@ -848,108 +848,6 @@ namespace UPSWCAPI.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
-
-        [HttpPut("update-supplier")]
-        public async Task<IActionResult> UpdateSupplier([FromBody] SupplierDetailsModel model)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@SupplierId", model.SupplierId);
-                parameters.Add("@SupplierName", model.SupplierName);
-                parameters.Add("@SupplierAddress", model.SupplierAddress);
-                parameters.Add("@MobileNo", model.MobileNo);
-                parameters.Add("@PhoneNo", model.PhoneNo);
-                parameters.Add("@FaxNo", model.FaxNo);
-                parameters.Add("@TinNo", model.TinNo);
-                parameters.Add("@STDCode", model.STDCode);
-                parameters.Add("@ContactPerson", model.ContactPerson);
-                parameters.Add("@ContactPersonNo", model.ContactPersonNo);
-                parameters.Add("@SuppCategId", model.SuppCategId);
-                parameters.Add("@EmailId", model.EmailId);
-                parameters.Add("@PANNo", model.PANNo);
-                parameters.Add("@GSTNo", model.GSTNo);
-                parameters.Add("@Website", model.Website);
-                parameters.Add("@UserId", model.UserId);
-                parameters.Add("@ProcID", 2); // Insert operation
-
-                var result = await connection.QueryAsync("[dbo].[PROC_SupplierDetails]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(new { success = true, message = "Supplier inserted successfully.", data = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpGet("all-suppliers")]
-        public async Task<IActionResult> GetAllSuppliers()
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@ProcID", 3); // 3 = get all
-
-                var result = await connection.QueryAsync("[dbo].[PROC_SupplierDetails]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
-        // GET BY ID
-        [HttpGet("get-supplier/{id}")]
-        public async Task<IActionResult> GetSupplierById(int id)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@SupplierId", id);
-                parameters.Add("@ProcID", 4); // 4 = get by id
-
-                var result = await connection.QueryAsync("[dbo].[PROC_SupplierDetails]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
-        // SOFT DELETE
-        [HttpPut("delete-supplier/{id}")]
-        public async Task<IActionResult> SoftDeleteSupplier(int id, [FromQuery] int userId)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@SupplierId", id);
-                parameters.Add("@UserId", userId);
-                parameters.Add("@ProcID", 5); // 5 = soft delete
-
-                var result = await connection.QueryAsync("[dbo].[PROC_SupplierDetails]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(new { success = true, message = "Supplier deleted (soft).", data = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
 
         #endregion
 

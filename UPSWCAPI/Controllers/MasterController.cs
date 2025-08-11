@@ -187,11 +187,12 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpGet("getToMaster")]
-        public async Task<IEnumerable<Master>> getToMaster([FromQuery] int procId, [FromQuery] int id)
+        public async Task<IEnumerable<Master>> getToMaster([FromQuery] int procId, [FromQuery] int id, [FromQuery] int OfficeId)
         {
             var dbparams = new DynamicParameters();
             dbparams.Add("ProcId", procId);
             dbparams.Add("Id", id); // DepartmentId
+            dbparams.Add("Officeid", OfficeId);
             var result = await Task.FromResult(_dapper.GetAll<Master>(
                 "[dbo].[Proc_BindMasterById]", dbparams, commandType: CommandType.StoredProcedure));
             return result;

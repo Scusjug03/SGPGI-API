@@ -91,6 +91,8 @@
     public class CounselDetail
     {
         public int CounselId { get; set; }
+        public int CourtTypeId { get; set; }
+        public int CourtId { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string FatherName { get; set; } = string.Empty;
         public string Gender { get; set; } = string.Empty;

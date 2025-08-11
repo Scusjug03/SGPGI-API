@@ -69,7 +69,7 @@ namespace UPSWCAPI.Controllers
                 dt.Columns.Add("UnitId", typeof(int));
                 dt.Columns.Add("ItemId", typeof(int));
                 dt.Columns.Add("OfficeRemarks", typeof(string));
-                dt.Columns.Add("DemandStatus", typeof(string));
+                dt.Columns.Add("StatusId", typeof(int));
                 dt.Columns.Add("UserId", typeof(int));
 
                 foreach (var entry in modelList)
@@ -80,7 +80,7 @@ namespace UPSWCAPI.Controllers
                         entry.UnitId,
                         entry.ItemId,
                         entry.OfficeRemarks ?? string.Empty,
-                        entry.DemandStatus ?? "Forward to RM Office",
+                        entry.StatusId ?? 1,
                         entry.UserId
                     );
                 }
@@ -98,6 +98,7 @@ namespace UPSWCAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
             }
         }
+
 
         [HttpGet("get-forwarded-demands")]
         public async Task<IActionResult> GetForwardedDemands()
@@ -140,8 +141,37 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@RmAppQty", model.RmAppQty);
                 parameters.Add("@UnitId", model.UnitId);
                 parameters.Add("@ItemId", model.ItemId);
+                parameters.Add("@OfficeRemarks", model.OfficeRemarks);
+                parameters.Add("@StatusId", model.StatusId);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync<dynamic>("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Demand updated successfully.", data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("update-demand-emp/{DemandId}")]
+        public async Task<IActionResult> UpdateDemandEmp(int DemandId, [FromBody] DemandInsertDto model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4); // For Update
+                parameters.Add("@DemandId", DemandId); // Passed in URL
+                parameters.Add("@MakeId", model.MakeId);
+                parameters.Add("@OfficeDemandQty", model.OfficeDemandQty);
+                parameters.Add("@UnitId", model.UnitId);
+                parameters.Add("@ItemId", model.ItemId);
                 parameters.Add("@RMOfficeRemarks", model.RMOfficeRemarks);
-                parameters.Add("@DemandStatus", model.DemandStatus);
+                parameters.Add("@StatusId", model.StatusId);
                 parameters.Add("@UserId", model.UserId);
 
                 var result = await connection.QueryAsync<dynamic>("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
@@ -216,7 +246,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@MakeId", model.MakeId);
                 parameters.Add("@HOAppQty", model.HOAppQty); // Approved Quantity by HO
                 parameters.Add("@HORemarks", model.HORemarks); // Remarks by HO
-                parameters.Add("@DemandStatus", model.DemandStatus);
+                parameters.Add("@StatusId", model.StatusId);
                 parameters.Add("@UserId", model.UserId);
 
                 var result = await connection.QueryAsync("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);

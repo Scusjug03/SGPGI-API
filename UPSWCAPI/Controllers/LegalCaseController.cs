@@ -1302,6 +1302,8 @@ namespace UPSWCAPI.Controllers
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcID", 1);
                 parameters.Add("@CounselId", 0);
+                parameters.Add("@CourtTypeId", model.CourtTypeId);
+                parameters.Add("@CourtId", model.CourtId);
                 parameters.Add("@FullName", model.FullName);
                 parameters.Add("@FatherName", model.FatherName);
                 parameters.Add("@Gender", model.Gender);
@@ -1360,6 +1362,8 @@ namespace UPSWCAPI.Controllers
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcID", 2); // Update
                 parameters.Add("@CounselId", model.CounselId);
+                parameters.Add("@CourtTypeId", model.CourtTypeId);
+                parameters.Add("@CourtId", model.CourtId);
                 parameters.Add("@FullName", model.FullName);
                 parameters.Add("@FatherName", model.FatherName);
                 parameters.Add("@Gender", model.Gender);
@@ -1400,7 +1404,7 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpGet("GetCounselById/{id}")]
-        public async Task<IActionResult> GetCounselById(int id)
+        public async Task<IActionResult> GetCounselById(int id )
         {
             try
             {
@@ -1409,7 +1413,8 @@ namespace UPSWCAPI.Controllers
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcID", 4);
-                parameters.Add("@CounselId", id);
+                var CounselId = id;
+                parameters.Add("@CounselId", CounselId);
 
                 var result = await connection.QueryAsync("PROC_CounselDetails", parameters, commandType: CommandType.StoredProcedure);
                 return Ok(new { data = result });
@@ -1430,7 +1435,8 @@ namespace UPSWCAPI.Controllers
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcID", 5);
-                parameters.Add("@CounselId", id);
+                var CounselId = id;
+                parameters.Add("@CounselId", CounselId);
 
                 var result = await connection.QueryAsync("PROC_CounselDetails", parameters, commandType: CommandType.StoredProcedure);
                 return Ok(new { data = result });
@@ -2118,7 +2124,7 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpPost("GetStandingCounselReport")]
-        public async Task<IActionResult> GetStandingCounselReport([FromBody] LegalMisReport model)
+        public async Task<IActionResult> GetStandingCounselReport([FromBody] LegalStandingCounsilReport model)
         {
             try
             {
@@ -2127,16 +2133,15 @@ namespace UPSWCAPI.Controllers
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcId", model.ProcId);
-                parameters.Add("@LCNo", model.LCNo ?? string.Empty);
-                parameters.Add("@FromDate", model.FromDate ?? string.Empty);
-                parameters.Add("@ToDate", model.ToDate ?? string.Empty);
-
+                parameters.Add("@CourtTypeId", model.CourtTypeId);
+                parameters.Add("@CourtId", model.CourtId);
+                parameters.Add("@UserId", model.UserId);
 
                 var result = await connection.QueryAsync<dynamic>(
-                   "Proc_LegalCaseMISReport",
-                   parameters,
-                   commandType: CommandType.StoredProcedure
-               );
+                    "PROC_CounselDetails",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
 
                 return Ok(new { success = true, data = result });
             }
