@@ -50,11 +50,11 @@ namespace UPSWCAPI.Controllers
         #region DemandForm
 
         [HttpPost("insert-demand")]
-        public async Task<IActionResult> InsertDemand([FromBody] List<DemandInsertDto> modelList)
+        public async Task<IActionResult> InsertDemand([FromBody] DemandBatchDto batch)
         {
             try
             {
-                if (modelList == null || !modelList.Any())
+                if (batch.Entries == null || !batch.Entries.Any())
                 {
                     return BadRequest(new { success = false, message = "No demand entries provided." });
                 }
@@ -62,7 +62,7 @@ namespace UPSWCAPI.Controllers
                 using var connection = _context.Database.GetDbConnection();
                 await connection.OpenAsync();
 
-                // Create a DataTable matching SQL TVP structure
+                // Create DataTable for TVP
                 var dt = new DataTable();
                 dt.Columns.Add("MakeId", typeof(int));
                 dt.Columns.Add("OfficeDemandQty", typeof(decimal));
@@ -72,7 +72,7 @@ namespace UPSWCAPI.Controllers
                 dt.Columns.Add("StatusId", typeof(int));
                 dt.Columns.Add("UserId", typeof(int));
 
-                foreach (var entry in modelList)
+                foreach (var entry in batch.Entries)
                 {
                     dt.Rows.Add(
                         entry.MakeId,
@@ -87,7 +87,9 @@ namespace UPSWCAPI.Controllers
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcId", 1);
-                parameters.Add("@DemandEntries", dt.AsTableValuedParameter("dbo.DemandEntryType")); // <-- your TVP name
+                parameters.Add("@OfficeId", batch.OfficeId);
+                parameters.Add("@RegionId", batch.RegionId);
+                parameters.Add("@DemandEntries", dt.AsTableValuedParameter("dbo.DemandEntryType"));
 
                 var result = await connection.QueryAsync("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
 
@@ -100,8 +102,9 @@ namespace UPSWCAPI.Controllers
         }
 
 
+
         [HttpGet("get-forwarded-demands")]
-        public async Task<IActionResult> GetForwardedDemands()
+        public async Task<IActionResult> GetForwardedDemands(int regionId)
         {
             try
             {
@@ -110,6 +113,7 @@ namespace UPSWCAPI.Controllers
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcId", 2); // For get all where status = 'Forward to RM Office'
+                parameters.Add("@RegionId", regionId);
 
                 var result = await connection.QueryAsync<dynamic>(
                     "[dbo].[Proc_demandForm]",

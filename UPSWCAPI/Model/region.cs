@@ -9,6 +9,8 @@
     }
     public class Office
     {
+        internal readonly string? shortName;
+
         public int DivisionId { get; set; }
         public int OfficeId { get; set; }
         public int RegionId { get; set; }

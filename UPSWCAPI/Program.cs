@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using UPSWCAPI.Model;
 using UPSWCAPI.Services;
@@ -26,7 +26,7 @@ builder.Services.AddCors(options =>
         builder =>
         {
             builder.WithOrigins("https://localhost:4200", "http://localhost:4209", "http://localhost:7004",
-                "https://mectoitest.uphq.in","https://wms.uphq.in")
+                "https://mectoitest.uphq.in", "https://wms.uphq.in")
             .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod();

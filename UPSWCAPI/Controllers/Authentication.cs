@@ -43,84 +43,103 @@ namespace UPSWCAPI.Controllers
         public async Task<IActionResult> CheckUserLogin(UserModel model)
         {
             if (model == null)
-                return BadRequest();
+                return BadRequest(new { Message = "Invalid Request" });
 
-            var user = await Task.FromResult(_dapper.Get<UserModel>($"Select *, UserPassword as password ,isnull((select DashboardPage from M_RoleType where Roletypeid=[UserLogin].roletypeid) ,'samplePage')  DashboardPage from [dbo].[UserLogin] where RoleTypeId = " + model.RoleTypeId + " AND UserName = '" + model.userName + "'", null, commandType: CommandType.Text)); if (user == null)
-                return NotFound(new { Message = "User not found!" });
-
-            if (string.IsNullOrWhiteSpace(user.password) || user.password.Length < 20) // adjust if you know your hash format
+      
+            if (model.RoleTypeId == 16)
             {
-                return BadRequest(new { Message = "Password hash is invalid or corrupted" });
-            }
+                var peruser = await Task.FromResult(_dapper.Get<UserModel>(
+     $@"SELECT  
+        A.*,
+        CONVERT(VARCHAR(10), A.DOB, 103) AS password,
+        A.EmpCode AS UserName,
+        ISNULL(MR.DashboardPage, 'PersonalDashboard') AS DashboardPage
+    FROM EmpDetail A
+    LEFT JOIN UserLogin D ON D.Empid = A.EmpId
+    LEFT JOIN M_RoleType MR ON MR.RoleTypeId = D.RoleTypeId
+    WHERE A.EmpCode = '{model.userName}'",
+     null, commandType: CommandType.Text));
             
 
-            if (!Helpers.PasswordHasher.VerifyPassword(model.password, user.password))
-            {
-                return BadRequest(new { Message = "Password is Incorrect" });
+                if (peruser == null)
+                    return NotFound(new { Message = "User not found!" });
+
+             
+                if (peruser.password.Trim() != model.password.Trim())
+                {
+                    return BadRequest(new { Message = "Password is Incorrect" });
+                }
+
+                peruser.Token = CreateJwt(peruser);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Success",
+                    data = new
+                    {
+                        AccessToken = peruser.Token,
+                        RefreshToken = "" // optional agar nahi chahiye
+                    },
+                    userid = peruser.UserId,
+                    usertypeId = peruser.UsertypeId,
+                    roleTypeId = peruser.RoleTypeId,
+                    officeId = peruser.OfficeId,
+                    regionId = peruser.RegionId,
+                    circleId = peruser.CircleId,
+                    userName = peruser.userName,
+                    empId = peruser.EmpId,
+                    isFirstLogin = peruser.IsFirstLogin,
+                    DashboardPage = peruser.DashboardPage
+                });
             }
 
+            // बाकी users के लिए logic
+            var user = await Task.FromResult(_dapper.Get<UserModel>(
+                $"SELECT *, UserPassword as password, ISNULL((SELECT DashboardPage FROM M_RoleType WHERE Roletypeid = UserLogin.roletypeid),'samplePage') DashboardPage FROM [dbo].[UserLogin] WHERE RoleTypeId = {model.RoleTypeId} AND UserName = '{model.userName}'",
+                null, commandType: CommandType.Text));
+
+            if (user == null)
+                return NotFound(new { Message = "User not found!" });
+
+            // hashed password verify
+            if (!Helpers.PasswordHasher.VerifyPassword(model.password, user.password))
+                return BadRequest(new { Message = "Password is Incorrect" });
+
+            // AccessToken & RefreshToken generate
             user.Token = CreateJwt(user);
             var newAccessToken = user.Token;
             var newRefreshToken = CreateRefreshToken();
             user.RefreshToken = newRefreshToken;
             user.RefreshTokenExpiryTime = DateTime.Now.AddHours(1).ToString("dd-MM-yyyy HH:mm:ss");
-            var updateUser = Task.FromResult(_dapper.Update<int>($"Update [dbo].[UserLogin] set RefreshToken='" + user.RefreshToken + "', RefreshTokenExpiryTime=Convert(datetime,'" + user.RefreshTokenExpiryTime + "',103) where UserName = '" + user.userName + "'",
-            null,
-            commandType: CommandType.Text));
 
-            //var dbparams = new DynamicParameters();
-            //dbparams.Add("UserId", model.UserId, DbType.String);
-            //dbparams.Add("UserName", model.userName, DbType.String);
-            //dbparams.Add("UserPassword", model.password, DbType.String);
-            //dbparams.Add("UsertypeId", model.UsertypeId, DbType.Int32);
-            //dbparams.Add("OfficeId", model.OfficeId, DbType.Int32);
-            //dbparams.Add("RoleTypeId", model.RoleTypeId, DbType.Int32);
-            //dbparams.Add("IsFirstLogin", model.IsFirstLogin, DbType.String);
-            //if (model.UsertypeId == 1 || model.UsertypeId == 2 || model.UsertypeId == 3 || model.UsertypeId == 4 || model.UsertypeId == 5)
-            //{
-            //    model.ProcId = 1;
-            //}
-            //else if (model.UsertypeId == 6)
-            //{
-            //    model.ProcId = 2;
-            //}
-            //dbparams.Add("ProcId", model.ProcId, DbType.Int32);
-            //var result = await Task.FromResult(_dapper.Get<UserModel>("[dbo].[Proc_UserLogin]", dbparams,
-            //    commandType: CommandType.StoredProcedure));
-
-            //return Ok(new UserToken()
-            //{
-            //    AccessToken = newAccessToken,
-            //    RefreshToken = newRefreshToken
-            //});
+            // RefreshToken को database में update
+            await Task.FromResult(_dapper.Update<int>($@"
+        UPDATE [dbo].[UserLogin] 
+        SET RefreshToken='{user.RefreshToken}', 
+            RefreshTokenExpiryTime=Convert(datetime,'{user.RefreshTokenExpiryTime}',103) 
+        WHERE UserName = '{user.userName}'",
+                null, commandType: CommandType.Text));
 
             return Ok(new
             {
-                
                 success = true,
                 message = "Success",
-                data = new UserToken()
-                {
-                    AccessToken = newAccessToken,
-                    RefreshToken = newRefreshToken
-                },
-                userid=user.UserId,
+                data = new { AccessToken = newAccessToken, RefreshToken = newRefreshToken },
+                userid = user.UserId,
                 AccessToken = user.RefreshToken,
                 usertypeId = user.UsertypeId,
                 roleTypeId = user.RoleTypeId,
                 officeId = user.OfficeId,
+                regionId = user.RegionId,
                 circleId = user.CircleId,
                 UserName = user.userName,
-                empId   = user.EmpId,
+                empId = user.EmpId,
                 isFirstLogin = user.IsFirstLogin,
-               DashboardPage = user.DashboardPage
-
-
-
-
+                DashboardPage = user.DashboardPage
             });
-
         }
+
 
 
         [HttpPost("FirstChangePassword")] 

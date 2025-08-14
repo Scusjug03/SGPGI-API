@@ -195,7 +195,7 @@ namespace UPSWCAPI.Controllers
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@OfficeId", model.officeId);
-                parameters.Add("@WtypeId", model.wTypeId); 
+                parameters.Add("@WtypeId", model.wTypeId);
                 parameters.Add("@EmployementId", model.employementId);
                 parameters.Add("@DepartmentId", model.departmentId);
                 parameters.Add("@DesignationId", model.designationId);
@@ -207,6 +207,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@OrderBy", model.orderBy);
                 parameters.Add("@EmpId", model.empId);
                 parameters.Add("@ProcId", 1);
+                parameters.Add("@CategoryId", model.CategoryId);
 
                 var result = await connection.QueryAsync<dynamic>(
                     "Proc_GetEmployeeList",
@@ -221,6 +222,7 @@ namespace UPSWCAPI.Controllers
                 return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
             }
         }
+
 
         [HttpGet("GetEmpDetail")]
         public async Task<IActionResult> GetEmpDetail([FromQuery] int procId, [FromQuery] int empId)
@@ -392,6 +394,153 @@ namespace UPSWCAPI.Controllers
                 {
                     return BadRequest("EmpId is missing");
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpPost("ForwardEmpDetail")]
+        public async Task<IActionResult> ForwardEmpDetail()
+        {
+            var dbfilepath = "";
+            var httpRequest = HttpContext.Request;
+            var postedFile = httpRequest.Form.Files["postedFile"];
+            var userData = httpRequest.Form["userData"];
+
+            EmpMaster model = JsonConvert.DeserializeObject<EmpMaster>(userData);
+
+            string contentPath = this.Environment.ContentRootPath;
+            string path = Path.Combine(contentPath, "Uploads/UserProfile");
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            if (postedFile != null && postedFile.Length > 0)
+            {
+                string fileName = Guid.NewGuid() + Path.GetExtension(postedFile.FileName);
+                string filePath = Path.Combine(path, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await postedFile.CopyToAsync(stream);
+                }
+                model.photo = "/Uploads/UserProfile/" + fileName;
+            }
+
+            try
+
+
+
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@EmpId", model.EmpId);
+                parameters.Add("@UserId", model.userId);
+                parameters.Add("@EmployementId", model.employementId);
+                parameters.Add("@OfficeId", model.officeId);
+                parameters.Add("@WTypeId", model.wTypeId);
+                parameters.Add("@EmpName", model.empName);
+                parameters.Add("@Sex", model.sex);
+                parameters.Add("@Married", model.married);
+                parameters.Add("@FatherName", model.fatherName);
+                parameters.Add("@DistrictId", model.districtId);
+                parameters.Add("@PermAddress", model.permAddress);
+                parameters.Add("@PostAddress", model.postAddress);
+                parameters.Add("@EmpQualification", model.empQualification);
+                parameters.Add("@DepartmentID", model.departmentID);
+                parameters.Add("@BankId", model.bankId);
+                parameters.Add("@BranchId", model.branchId);
+                parameters.Add("@UANNO", model.uanno);
+                parameters.Add("@AccountNo", model.accountNo);
+                parameters.Add("@PANNo", model.panNo);
+                parameters.Add("@CategoryId", model.categoryId);
+                parameters.Add("@DesignationId", model.designationId);
+                parameters.Add("@NPSNo", model.npsNo);
+                parameters.Add("@Nominee", model.nominee);
+                parameters.Add("@RelationId", model.relationId);
+                parameters.Add("@MobileNo", model.mobileNo);
+                parameters.Add("@EmailId", model.emailId);
+                //parameters.Add("@DOB", model.dOB);
+                parameters.Add("@DOB", model.dOB);
+                parameters.Add("@DOJ", model.doj);
+                parameters.Add("@DOR", model.dor);
+                parameters.Add("@DOD", model.dod);
+                //parameters.Add("@DOD", string.IsNullOrWhiteSpace(model.dod) ? DBNull.Value : DateTime.ParseExact(model.dod, "yyyy-MM-dd", CultureInfo.InvariantCulture));
+                parameters.Add("@AdharNo", model.adharNo);
+                parameters.Add("@Remarks", model.remarks);
+                parameters.Add("@Photo", model.photo);
+                parameters.Add("@GPFTypeId", model.gpfTypeId);
+                parameters.Add("@GPFCode", model.gpfCode);
+                parameters.Add("@GISCode", model.gisCode);
+                parameters.Add("@EPFCode", model.epfCode);
+                parameters.Add("@GradePayId", model.gradePayId);
+                parameters.Add("@LevelID", model.levelID);
+                parameters.Add("@IncrementId", model.incrementId);
+                parameters.Add("@basicSalary", model.basicSalary);
+                parameters.Add("@hrmsID", model.hrmsID);
+                parameters.Add("@EmpCode", model.empCode);
+                parameters.Add("@MA", model.ma);
+                parameters.Add("@WA", model.wa);
+                parameters.Add("@CCA", model.cca);
+                parameters.Add("@HRA", model.hra);
+                parameters.Add("@SalaryStatus", model.salaryStatus);
+                parameters.Add("@EmployeeStatus", model.employeeStatus);
+                parameters.Add("@BloodGroupId", model.bloodgroupId);
+                parameters.Add("@EmergencyNo", model.emergencyNo);
+                parameters.Add("@AuthSignatory", model.authSignatory);
+                parameters.Add("@CasteId", model.casteId);
+                parameters.Add("@IPAddress", model.ipAddress);
+                parameters.Add("@ContractValidity", model.contractvalidity);
+                parameters.Add("@ReligionId", model.religionId);
+                parameters.Add("@OfficeDOJ", model.officeDOJ);
+                parameters.Add("@IncDt", model.incDt);
+                parameters.Add("@IsEPF", model.isEPF);
+                parameters.Add("@IsESIC", model.isESIC);
+                //parameters.Add("@IsPPF", model.isPPF);
+                parameters.Add("@ServiceQuota", model.serviceQuota);
+                parameters.Add("@RecruitmentMode", model.recruitmentMode);
+                parameters.Add("@PFMSCode", model.pfmsCode);
+                parameters.Add("@IsPenCon", model.isPenCon);
+                parameters.Add("@IsNPSCon", model.isNPSCon);
+                parameters.Add("@IsLock", model.isLock);
+                parameters.Add("@IsPPF", model.isPPF);
+                parameters.Add("@ESICCode", model.esicCode);
+                parameters.Add("@SubDeptID", model.subDeptID);
+                parameters.Add("@DptEmpCode", model.dptEmpCode);
+                parameters.Add("@PreEmpId", model.preEmpId);
+                parameters.Add("@IFSCCode", model.ifscCode);
+                parameters.Add("@HeadId", model.headId);
+                parameters.Add("@PayCommissionId", model.payCommissionId);
+                parameters.Add("@PayScaleID", model.payScaleID);
+                parameters.Add("@SourceId", model.sourceId);
+                parameters.Add("@OrderNo", model.orderNo);
+                parameters.Add("@OrderDt", model.orderDt);
+                parameters.Add("@GPFAc", model.gpfAc);
+                parameters.Add("@CPFAc", model.cpfAc);
+
+
+
+                //parameters.Add("@StateId", model.stateId);
+                //parameters.Add("@IncrementCode", model.incrementCode);
+                //parameters.Add("@DOR", model.dor);
+                //parameters.Add("@PPONo", model.ppoNo);
+                //parameters.Add("@IsLock", model.isLock);
+                //parameters.Add("@EntryDate", model.entryDate);
+                //parameters.Add("@UpdateDate", model.updateDate);
+                //parameters.Add("@OrderRemarks", model.orderRemarks);
+                //parameters.Add("@LastIncDate", model.lastIncDate);
+
+                parameters.Add("@EmpCode", dbType: DbType.String, direction: ParameterDirection.Output, size: 15);
+
+                await connection.ExecuteAsync("[dbo].[SP_EmpDetail_Forward]", parameters, commandType: CommandType.StoredProcedure);
+
+                string empCode = parameters.Get<string>("@EmpCode");
+
+                return Ok(new { success = true, empCode });
             }
             catch (Exception ex)
             {
@@ -807,7 +956,7 @@ namespace UPSWCAPI.Controllers
             }
         }
 
-        [HttpPut("UpdateOffice")]
+        [HttpPost("UpdateOffice")]
         public async Task<IActionResult> UpdateOffice([FromBody] Office model)
         {
             try
@@ -822,9 +971,12 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@RegionId", model.RegionId);
                 parameters.Add("@OfficeName", model.OfficeName ?? string.Empty);
                 //parameters.Add("@Status", model.Status ?? "A");
+                parameters.Add("@ShortName", model.ShortName);
                 parameters.Add("@OfficeCode", model.OfficeCode ?? string.Empty);
+                
                 //parameters.Add("@AgencyCode", model.AgencyCode ?? string.Empty); // Include this if used in proc
                 //parameters.Add("@AgencyTypeId", model.AgencyTypeId);
+
                 parameters.Add("@UpdatedOn", DateTime.Now);
 
                 await connection.ExecuteAsync("[dbo].[Proc_Office]", parameters, commandType: CommandType.StoredProcedure);
@@ -959,8 +1111,8 @@ namespace UPSWCAPI.Controllers
 
         #region PaySlip
         [HttpGet("GetPayRegisterByEmpId")]
-        public async Task<IActionResult> GetPayRegisterByEmpId([FromQuery] int empId, [FromQuery] int payMonth, [FromQuery] int payYear)
-            {
+        public async Task<IActionResult> GetPayRegisterByEmpId([FromQuery] int empId, [FromQuery] int payMonth, [FromQuery] int payYear, [FromQuery] int categoryId)
+        {
             try
             {
                 using var connection = _context.Database.GetDbConnection();
@@ -971,6 +1123,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@EmpId", empId);
                 parameters.Add("@PayMonth", payMonth);
                 parameters.Add("@PayYear", payYear);
+                parameters.Add("@CategoryId", categoryId);
 
                 var result = await connection.QueryFirstOrDefaultAsync<PayRegister>(
                     "SP_PayRegister",
@@ -1053,6 +1206,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@SubDeptId", model.SubDeptId);
                 parameters.Add("@DesignationId", model.DesignationId);
                 parameters.Add("@Salarytype", model.Salarytype);
+                parameters.Add("@CategoryId", model.CategoryId);
                 parameters.Add("@ProcId", 1);
 
 
@@ -1069,8 +1223,37 @@ namespace UPSWCAPI.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
-
         #endregion
+
+        [HttpPost("GetEmpForwardRpt")]
+        public async Task<IActionResult> GetEmpForwardRpt([FromBody] SalaryRptRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserId", model.UserId);
+                parameters.Add("@OfficeId", model.OfficeId);
+                parameters.Add("@EmpId", model.EmpId);
+                parameters.Add("@ProcId", model.ProcId);
+                parameters.Add("@Salarytype", model.Salarytype);
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "Proc_EmpForwardRpt",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
 
         #region LIC
         [HttpPost("InsertEmpLic")]
@@ -1337,8 +1520,8 @@ namespace UPSWCAPI.Controllers
         #region locksalary
         [HttpGet("get-lock-salary")]
         public async Task<IActionResult> GetLockSalary(
-        int officeId, int wTypeId, int departmentId, int subDepartmentId,
-        int month, int year, string salaryType, int orderBy)
+    int officeId, int wTypeId, int departmentId, int subDepartmentId,
+    int month, int year, string salaryType, int orderBy, int CategoryId)
         {
             try
             {
@@ -1356,81 +1539,85 @@ namespace UPSWCAPI.Controllers
                 if (wTypeId == 2)
                 {
                     query = @$"
-        SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
-               rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
-               ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
-               ed.IncrementId, P.BasicSal AS basicSalary
-        FROM SamvidaPayRegister p
-        LEFT JOIN empdetail ed ON p.EmpId = ed.EmpId
-        LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
-        LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
-        LEFT JOIN designation de ON de.designationid = p.desigid
-        WHERE p.Status = 'N' AND ed.WTypeId = 2 AND 
-              p.OfficeId = @officeId AND 
-              p.Subdeptid IN (@subDepartmentId) AND 
-              PayMonth = @month AND 
-              PayYear = @year AND 
-              SalaryType = @salaryType 
-        {orderClause}";
+   SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+          rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+          ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+          ed.IncrementId, P.BasicSal AS basicSalary
+   FROM SamvidaPayRegister p
+   LEFT JOIN empdetail ed ON p.EmpId = ed.EmpId
+   LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
+   LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+   LEFT JOIN designation de ON de.designationid = p.desigid
+   WHERE p.Status = 'N' AND ed.WTypeId = 2 AND 
+         p.OfficeId = @officeId AND 
+        ( ed.CategoryId=@CategoryId or @CategoryId=0) AND 
+         p.Subdeptid IN (@subDepartmentId) AND 
+         PayMonth = @month AND 
+         PayYear = @year AND 
+         SalaryType = @salaryType 
+   {orderClause}";
                 }
                 else if (wTypeId == 1)
                 {
                     query = @$"
-        SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
-               rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
-               ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
-               ed.IncrementId, P.BasicSal AS basicSalary
-        FROM PayRegister p
-        INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
-        LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
-        LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
-        LEFT JOIN designation de ON de.designationid = p.desigid
-        WHERE p.Status = 'N' AND ed.WTypeId = 1 AND 
-              p.OfficeId = @officeId AND 
-              p.Subdeptid IN (@subDepartmentId) AND 
-              PayMonth = @month AND 
-              PayYear = @year AND 
-              SalaryType = @salaryType 
-        {orderClause}";
+   SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+          rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+          ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+          ed.IncrementId, P.BasicSal AS basicSalary
+   FROM PayRegister p
+   INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+   LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
+   LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+   LEFT JOIN designation de ON de.designationid = p.desigid
+   WHERE p.Status = 'N' AND ed.WTypeId = 1 AND 
+         p.OfficeId = @officeId AND 
+         p.Subdeptid IN (@subDepartmentId) AND 
+         PayMonth = @month AND 
+         PayYear = @year AND 
+        ( ed.CategoryId=@CategoryId or @CategoryId=0) and
+         SalaryType = @salaryType 
+   {orderClause}";
                 }
                 else if (wTypeId == 5)
                 {
                     query = @$"
-        SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
-               rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
-               ed.fathername, de.designationname, 0 AS gradepay, ed.LevelID, 
-               ed.IncrementId, P.BasicSal AS basicSalary
-        FROM DailyWagesPayRegister p
-        INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
-        LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
-        LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
-        LEFT JOIN designation de ON de.designationid = ed.designationid
-        WHERE ISNULL(P.Status, 'N') = 'N' AND ed.WTypeId = 5 AND 
-              p.OfficeId = @officeId AND 
-              p.Subdeptid IN (@subDepartmentId) AND 
-              PayMonth = @month AND 
-              PayYear = @year 
-        {orderClause}";
+   SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+          rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.DptEmpCode,'') DptEmpCode, 
+          ed.fathername, de.designationname, 0 AS gradepay, ed.LevelID, 
+          ed.IncrementId, P.BasicSal AS basicSalary
+   FROM DailyWagesPayRegister p
+   INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+   LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
+   LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+   LEFT JOIN designation de ON de.designationid = ed.designationid
+   WHERE ISNULL(P.Status, 'N') = 'N' AND 
+        ( ed.CategoryId=@CategoryId or @CategoryId=0) AND  ed.WTypeId = 5 AND 
+         p.OfficeId = @officeId AND 
+         p.Subdeptid IN (@subDepartmentId) AND 
+         PayMonth = @month AND 
+         PayYear = @year 
+   {orderClause}";
                 }
                 else if (wTypeId == 4)
                 {
                     query = @$"
-        SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
-               rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.PPONo,'') DptEmpCode, 
-               ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
-               ed.IncrementId, P.BasicSal AS basicSalary
-        FROM PayRegister p
-        INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
-        LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
-        LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
-        LEFT JOIN designation de ON de.designationid = p.desigid
-        WHERE p.Status = 'N' AND ed.WTypeId = 4 AND 
-              p.OfficeId = @officeId AND 
-              p.Subdeptid IN (@subDepartmentId) AND 
-              PayMonth = @month AND 
-              PayYear = @year AND 
-              SalaryType = @salaryType 
-        {orderClause}";
+   SELECT p.empid, ed.SubDeptId, ISNULL(ed.pfmscode,'NA') pfmscode, 
+          rt.DepartmentName as departmenthead, ed.empname, ISNULL(ed.PPONo,'') DptEmpCode, 
+          ed.fathername, de.designationname, gp.gradepay, ed.LevelID, 
+          ed.IncrementId, P.BasicSal AS basicSalary
+   FROM PayRegister p
+   INNER JOIN empdetail ed ON p.EmpId = ed.EmpId
+   LEFT JOIN M_Department rt ON rt.departmentid = p.departmentid
+   LEFT JOIN gradepay gp ON ed.gradepayid = gp.gradepayid
+   LEFT JOIN designation de ON de.designationid = p.desigid
+   WHERE p.Status = 'N' AND 
+        ( ed.CategoryId=@CategoryId or @CategoryId=0) AND ed.WTypeId = 4 AND 
+         p.OfficeId = @officeId AND 
+         p.Subdeptid IN (@subDepartmentId) AND 
+         PayMonth = @month AND 
+         PayYear = @year AND 
+         SalaryType = @salaryType 
+   {orderClause}";
                 }
 
                 using var connection = _context.Database.GetDbConnection();
@@ -1440,7 +1627,8 @@ namespace UPSWCAPI.Controllers
                     subDepartmentId,
                     month,
                     year,
-                    salaryType
+                    salaryType,
+                    CategoryId
                 });
 
                 return Ok(result);
@@ -1450,6 +1638,7 @@ namespace UPSWCAPI.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
 
         [HttpPost("UpdateSalaryStatusInline")]
         public async Task<IActionResult> UpdateSalaryStatusInline([FromBody] FinalizeSalaryRequest model)
@@ -1487,7 +1676,7 @@ namespace UPSWCAPI.Controllers
         #endregion
 
         #region Arpit
-        #region For Show Increment Data
+       
 
         [HttpPost("GenIncrementDataList")]
 
@@ -1649,7 +1838,7 @@ namespace UPSWCAPI.Controllers
         }
 
         [HttpGet("GetIncrementReport")]
-        public async Task<IActionResult> GetIncrementReport(int subDeptID, int IncDt, int officeid, int departmentID, int wtypeId)
+        public async Task<IActionResult> GetIncrementReport(int subDeptID, int IncDt, int officeid, int departmentID, int wtypeId, int categoryId)
         {
             try
             {
@@ -1672,6 +1861,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@Date", incrementDate);
                 parameters.Add("@SubDeptId", subDeptID);
                 parameters.Add("@MonthId", month);
+                parameters.Add("@categoryId", categoryId);
 
 
                 //parameters.Add("Msg", dbType: DbType.String, size: 100, direction: ParameterDirection.Output);
@@ -1691,8 +1881,100 @@ namespace UPSWCAPI.Controllers
             }
         }
 
-        #endregion
+        [HttpPost("GetEmpPaymentPageWise")]
+        public async Task<IActionResult> GetEmpPaymentPageWise([FromBody] EmpPaymentRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserId", model.UserId);
+                parameters.Add("@RegTypeList", model.departmentId);
+                parameters.Add("@SubRegTypeList", model.subDeptId);
+                parameters.Add("@BankId", model.BankId);
+                parameters.Add("@Month", model.Month);
+                parameters.Add("@Year", model.Year);
+                parameters.Add("@WtypeId", model.WtypeId);
+                parameters.Add("@PageIndex", model.PageIndex);
+                parameters.Add("@PageSize", model.PageSize);
+                parameters.Add("@Salarytype", model.SalaryType);
+                parameters.Add("@Total", dbType: DbType.Decimal, direction: ParameterDirection.Output);
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "GetEmpPaymentPageWise",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                var total = parameters.Get<decimal>("@Total");
+                var resultList = result.ToList();
+                var duplicateAccounts = resultList
+                    .GroupBy(r => (string)r.AccountNo)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
+                var depot = await connection.ExecuteScalarAsync<string>(
+                    "SELECT OfficeName FROM Office WHERE OfficeId = @OfficeId",
+                    new { model.OfficeId }
+                );
+                return Ok(new
+                {
+                    success = true,
+                    data = resultList,
+                    total,
+                    duplicateAccounts,
+                    depot
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+       
+        [HttpPost("GetEmployeeDeductionReport")]
+        public async Task<IActionResult> GetEmployeeDeductionReport([FromBody] EmployeeDeductionReportRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserId", model.UserId);
+                parameters.Add("@PayMonth", model.PayMonth);
+                parameters.Add("@PayYear", model.PayYear);
+                parameters.Add("@WtypeId", model.WtypeId);
+                parameters.Add("@SalaryType", model.SalaryType);
+                parameters.Add("@SubDeptId", model.SubDeptId);
+                parameters.Add("@DedactionType", model.DedactionType);
+                parameters.Add("@Officeid", model.OfficeId);
+
+                var data = await connection.QueryAsync<dynamic>(
+                    "Proc_GetEmployeeDeductionReport",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(new
+                {
+                    success = true,
+                    data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
 
         #endregion
-    }
+    }       
 }

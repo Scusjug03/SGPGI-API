@@ -31,5 +31,29 @@
     {
         public int UserId { get; set; }
     }
-
+    public class EmpPaymentRequest
+    {
+        public int UserId { get; set; }
+        public int departmentId { get; set; }
+        public int subDeptId { get; set; }
+        public int BankId { get; set; }
+        public int Month { get; set; }
+        public int Year { get; set; }
+        public int WtypeId { get; set; }
+        public int PageIndex { get; set; }
+        public int PageSize { get; set; }
+        public string SalaryType { get; set; } =string.Empty;
+        public int OfficeId { get; set; }
+    }
+    public class EmployeeDeductionReportRequest
+    {
+        public int OfficeId { get; set; }
+        public int UserId { get; set; }
+        public int PayMonth { get; set; }
+        public int PayYear { get; set; }
+        public int? WtypeId { get; set; }
+        public string SalaryType { get; set; } = string.Empty;
+        public string DedactionType { get; set; }  =string.Empty;
+        public int? SubDeptId { get; set; }
+    }
 }

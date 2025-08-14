@@ -7,8 +7,10 @@
         public string password { get; set; } = string.Empty;
         public int UsertypeId { get; set; }
         public int OfficeId { get; set; }
+        public int RegionId { get; set; }
         public int CircleId { get; set; }
         public int ProcId { get; set; }
+      
         public int EmpId { get; set; }
         public string IsFirstLogin { get; set; } = string.Empty;
         public string DashboardPage { get; set; } = string.Empty;

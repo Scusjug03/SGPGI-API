@@ -1,5 +1,3 @@
-﻿
-
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -20,18 +18,21 @@ using Microsoft.Extensions.Configuration;
 using System.Globalization;
 using UPSWCAPI.Model.UPSWCAPI.Model;
 using Microsoft.Data.SqlClient;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace UPSWCAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [EnableCors("allowCors")]
-    public class InventoryController : Controller
+
+    public class Demand : Controller
     {
         private readonly IDapper _dapper;
         private IWebHostEnvironment Environment;
         private IConfiguration Configuration;
-        public InventoryController(IConfiguration _configuration, EnquiryDbContext context, IWebHostEnvironment _environment, IDapper dapper)
+
+        public Demand (IConfiguration _configuration, EnquiryDbContext context, IWebHostEnvironment _environment, IDapper dapper)
         {
             Environment = _environment;
             Configuration = _configuration;
@@ -43,29 +44,54 @@ namespace UPSWCAPI.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            return Ok("Inventory API is running.");
+            return Ok("Demand API is running.");
         }
-        #region Item Grp
 
-        // POST: Insert ItemGroup
-        [HttpPost("insert-itemgroup")]
-        public async Task<IActionResult> InsertItemGroup([FromBody] ItemGroupModel model)
+        #region DemandForm
+
+        [HttpPost("insert-demand")]
+        public async Task<IActionResult> InsertDemand([FromBody] List<DemandInsertDto> modelList)
         {
             try
             {
+                if (modelList == null || !modelList.Any())
+                {
+                    return BadRequest(new { success = false, message = "No demand entries provided." });
+                }
 
                 using var connection = _context.Database.GetDbConnection();
                 await connection.OpenAsync();
 
-                var parameters = new DynamicParameters();
-                parameters.Add("@Itemgrpid", 0);
-                parameters.Add("@Itemgrpname", model.Itemgrpname);
-                parameters.Add("@CreatedBy", model.CreatedBy);
-                parameters.Add("@UpdatedBy", 0);
-                parameters.Add("@Procid", 1); // Insert
-                await connection.ExecuteAsync("[dbo].[SP_ItemGroupMaster]", parameters, commandType: CommandType.StoredProcedure);
+                // Create a DataTable matching SQL TVP structure
+                var dt = new DataTable();
+                dt.Columns.Add("MakeId", typeof(int));
+                dt.Columns.Add("OfficeDemandQty", typeof(decimal));
+                dt.Columns.Add("UnitId", typeof(int));
+                dt.Columns.Add("ItemId", typeof(int));
+                dt.Columns.Add("OfficeRemarks", typeof(string));
+                dt.Columns.Add("StatusId", typeof(int));
+                dt.Columns.Add("UserId", typeof(int));
 
-                return Ok(new { success = true, message = "Item Group inserted successfully." });
+                foreach (var entry in modelList)
+                {
+                    dt.Rows.Add(
+                        entry.MakeId,
+                        entry.OfficeDemandQty,
+                        entry.UnitId,
+                        entry.ItemId,
+                        entry.OfficeRemarks ?? string.Empty,
+                        entry.StatusId ?? 1,
+                        entry.UserId
+                    );
+                }
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);
+                parameters.Add("@DemandEntries", dt.AsTableValuedParameter("dbo.DemandEntryType")); // <-- your TVP name
+
+                var result = await connection.QueryAsync("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Batch demand inserted.", data = result });
             }
             catch (Exception ex)
             {
@@ -73,9 +99,9 @@ namespace UPSWCAPI.Controllers
             }
         }
 
-        // PUT: Update ItemGroup
-        [HttpPut("update-itemgroup")]
-        public async Task<IActionResult> UpdateItemGroup([FromBody] ItemGroupModel model)
+
+        [HttpGet("get-forwarded-demands")]
+        public async Task<IActionResult> GetForwardedDemands()
         {
             try
             {
@@ -83,87 +109,13 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
-                parameters.Add("@Itemgrpid", model.Itemgrpid);
-                parameters.Add("@Itemgrpname", model.Itemgrpname);
-                parameters.Add("@CreatedBy", 0);
-                parameters.Add("@UpdatedBy", model.UpdatedBy);
-                parameters.Add("@Procid", 2); // Update
+                parameters.Add("@ProcId", 2); // For get all where status = 'Forward to RM Office'
 
-                await connection.ExecuteAsync("[dbo].[SP_ItemGroupMaster]", parameters, commandType: CommandType.StoredProcedure);
-
-                return Ok(new { success = true, message = "Item Group updated successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpGet("get-all-itemgroups")]
-        public async Task<IActionResult> GetAllItemGroups()
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@Itemgrpid", 0);          // ✅ Required
-                parameters.Add("@Itemgrpname", null);     // ✅ Optional
-                parameters.Add("@CreatedBy", 0);          // ✅ Optional
-                parameters.Add("@UpdatedBy", 0);          // ✅ Optional
-                parameters.Add("@Procid", 4);             // ✅ Required
-
-                var result = await connection.QueryAsync("[dbo].[SP_ItemGroupMaster]", parameters, commandType: CommandType.StoredProcedure);
-
-                return Ok(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-            }
-        }
-
-        // DELETE: Delete ItemGroup
-
-        [HttpDelete("delete-itemgroup/{itemgrpid}")]
-        public async Task<IActionResult> DeleteItemGroup(int itemgrpid)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@ProcId", 5);
-                parameters.Add("@Itemgrpid", itemgrpid);
-
-                await connection.ExecuteAsync("[dbo].[SP_ItemGroupMaster]", parameters, commandType: CommandType.StoredProcedure);
-
-                return Ok(new { success = true, message = "Item Group deleted successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpGet("search-Itemgrp")]
-        public async Task<IActionResult> SearchItemgrp([FromQuery] string name)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@Itemgrpid", 0);
-                parameters.Add("@Itemgrpname", string.IsNullOrWhiteSpace(name) ? null : name);
-                parameters.Add("@CreatedBy", 0);
-                parameters.Add("@UpdatedBy", 0);
-                parameters.Add("@Procid", 6); // Search
-
-                var result = await connection.QueryAsync("[dbo].[SP_ItemGroupMaster]", parameters, commandType: CommandType.StoredProcedure);
+                var result = await connection.QueryAsync<dynamic>(
+                    "[dbo].[Proc_demandForm]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
 
                 return Ok(new { success = true, data = result });
             }
@@ -174,13 +126,8 @@ namespace UPSWCAPI.Controllers
         }
 
 
-        #endregion
-
-        #region Make
-
-        // POST: Insert Make
-        [HttpPost("insert-make")]
-        public async Task<IActionResult> InsertMake([FromBody] MakeModel model)
+        [HttpPut("update-demand/{DemandId}")]
+        public async Task<IActionResult> UpdateDemand(int DemandId, [FromBody] DemandInsertDto model)
         {
             try
             {
@@ -188,181 +135,28 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
-                parameters.Add("@Makeid", 0);
-                parameters.Add("@Makename", model.Makename);
-                parameters.Add("@CreatedBy", model.CreatedBy);
-                parameters.Add("@UpdatedBy", 0);
-                parameters.Add("@Procid", 1); // Insert
-
-                var result = await connection.QueryAsync("[dbo].[SP_MakeMaster]", parameters, commandType: CommandType.StoredProcedure);
-
-                return Ok(new { success = true, message = "Make inserted successfully.", data = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-            }
-        }
-
-        // PUT: Update Make
-        [HttpPut("update-make")]
-        public async Task<IActionResult> UpdateMake([FromBody] MakeModel model)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@Makeid", model.Makeid);
-                parameters.Add("@Makename", model.Makename);
-                parameters.Add("@CreatedBy", 0);
-                parameters.Add("@UpdatedBy", model.UpdatedBy);
-                parameters.Add("@Procid", 2); // Update
-
-                var result = await connection.QueryAsync("[dbo].[SP_MakeMaster]", parameters, commandType: CommandType.StoredProcedure);
-
-                return Ok(new { success = true, message = "Make updated successfully.", data = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-            }
-        }
-
-        // GET: Get All Makes
-        [HttpGet("get-all-makes")]
-        public async Task<IActionResult> GetAllMakes()
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@Makeid", 0);
-                parameters.Add("@Makename", null);
-                parameters.Add("@CreatedBy", 0);
-                parameters.Add("@UpdatedBy", 0);
-                parameters.Add("@Procid", 4); // Get All
-
-                var result = await connection.QueryAsync("[dbo].[SP_MakeMaster]", parameters, commandType: CommandType.StoredProcedure);
-
-                return Ok(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-            }
-        }
-
-        // DELETE: Soft Delete Make
-        [HttpDelete("delete-make/{makeid}")]
-        public async Task<IActionResult> DeleteMake(int makeid)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@Makeid", makeid);
-                parameters.Add("@Makename", null);
-                parameters.Add("@CreatedBy", 0);
-                parameters.Add("@UpdatedBy", 0);
-                parameters.Add("@Procid", 5); // Soft Delete
-
-                await connection.ExecuteAsync("[dbo].[SP_MakeMaster]", parameters, commandType: CommandType.StoredProcedure);
-
-                return Ok(new { success = true, message = "Make deleted successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpGet("search-make")]
-        public async Task<IActionResult> SearchMake([FromQuery] string name)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@Makeid", 0);
-                parameters.Add("@Makename", name);
-                parameters.Add("@CreatedBy", 0);
-                parameters.Add("@UpdatedBy", 0);
-                parameters.Add("@Procid", 6); // Search
-
-                var result = await connection.QueryAsync("[dbo].[SP_MakeMaster]", parameters, commandType: CommandType.StoredProcedure);
-
-                return Ok(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-            }
-        }
-
-
-        #endregion
-
-        #region Unit Details
-        [HttpPost("insert-unit")]
-        public async Task<IActionResult> InsertUnit([FromBody] UnitModel model)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@UnitId", 0);
-                parameters.Add("@UnitName", model.UnitName);
-                parameters.Add("@Remark", model.Remark);
-                parameters.Add("@UserId", model.UserId);
-                parameters.Add("@Procid", 1); // Insert
-
-                await connection.ExecuteAsync("[dbo].[SP_Unit]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(new { success = true, message = "Unit inserted successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
-        // PUT: Update Unit
-        [HttpPut("update-unit")]
-        public async Task<IActionResult> UpdateUnit([FromBody] UnitModel model)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 3); // For Update
+                parameters.Add("@DemandId", DemandId); // Passed in URL
+                parameters.Add("@MakeId", model.MakeId);
+                parameters.Add("@RmAppQty", model.RmAppQty);
                 parameters.Add("@UnitId", model.UnitId);
-                parameters.Add("@UnitName", model.UnitName);
-                parameters.Add("@Remark", model.Remark);
+                parameters.Add("@ItemId", model.ItemId);
+                parameters.Add("@OfficeRemarks", model.OfficeRemarks);
+                parameters.Add("@StatusId", model.StatusId);
                 parameters.Add("@UserId", model.UserId);
-                parameters.Add("@Procid", 2); // Update
 
-                await connection.ExecuteAsync("[dbo].[SP_Unit]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(new { success = true, message = "Unit updated successfully."});
+                var result = await connection.QueryAsync<dynamic>("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Demand updated successfully.", data = result });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
             }
         }
 
-        // GET: Get Unit by ID
-        [HttpGet("get-unit/{id}")]
-        public async Task<IActionResult> GetUnitById(int id)
+        [HttpPut("update-demand-emp/{DemandId}")]
+        public async Task<IActionResult> UpdateDemandEmp(int DemandId, [FromBody] DemandInsertDto model)
         {
             try
             {
@@ -370,24 +164,28 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
-                parameters.Add("@UnitId", id);
-                parameters.Add("@UnitName", null);
-                parameters.Add("@Remark", null);
-                parameters.Add("@UserId", 0);
-                parameters.Add("@Procid", 3); // Get by ID
+                parameters.Add("@ProcId", 4); // For Update
+                parameters.Add("@DemandId", DemandId); // Passed in URL
+                parameters.Add("@MakeId", model.MakeId);
+                parameters.Add("@OfficeDemandQty", model.OfficeDemandQty);
+                parameters.Add("@UnitId", model.UnitId);
+                parameters.Add("@ItemId", model.ItemId);
+                parameters.Add("@RMOfficeRemarks", model.RMOfficeRemarks);
+                parameters.Add("@StatusId", model.StatusId);
+                parameters.Add("@UserId", model.UserId);
 
-                await connection.ExecuteAsync("[dbo].[SP_Unit]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(new { success = true });
+                var result = await connection.QueryAsync<dynamic>("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "Demand updated successfully.", data = result });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
             }
         }
 
-        // GET: Get All Units
-        [HttpGet("get-all-units")]
-        public async Task<IActionResult> GetAllUnits()
+        [HttpGet("get-demand-by-id/{id}")]
+        public async Task<IActionResult> GetDemandById(int id)
         {
             try
             {
@@ -395,24 +193,20 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
-                parameters.Add("@UnitId", 0);
-                parameters.Add("@UnitName", null);
-                parameters.Add("@Remark", null);
-                parameters.Add("@UserId", 0);
-                parameters.Add("@Procid", 4); // Get all
+                parameters.Add("@ProcId", 5); // For example
+                parameters.Add("@DemandId", id);
 
-                var result = await connection.QueryAsync("[dbo].[SP_Unit]", parameters, commandType: CommandType.StoredProcedure);
+                var result = await connection.QueryAsync("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
                 return Ok(new { success = true, data = result });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
+                catch (Exception ex)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+                }
             }
-        }
 
-        // DELETE: Soft Delete Unit
-        [HttpDelete("delete-unit/{id}")]
-        public async Task<IActionResult> DeleteUnit(int id)
+        [HttpGet("get-RM-demands")]
+        public async Task<IActionResult> GetRMDemands()
         {
             try
             {
@@ -420,200 +214,75 @@ namespace UPSWCAPI.Controllers
                 await connection.OpenAsync();
 
                 var parameters = new DynamicParameters();
-                parameters.Add("@UnitId", id);
-                parameters.Add("@UnitName", null);
-                parameters.Add("@Remark", null);
-                parameters.Add("@UserId", 0);
-                parameters.Add("@Procid", 5); // Soft delete
+                parameters.Add("@ProcId", 6); // For get all where status = 'Forward to RM Office'
 
-                await connection.ExecuteAsync("[dbo].[SP_Unit]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(new { success = true, message = "Unit deleted successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
-        // GET: Search Unit
-        [HttpGet("search-unit")]
-        public async Task<IActionResult> SearchUnit([FromQuery] string name)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@UnitId", 0);
-                parameters.Add("@UnitName", name);
-                parameters.Add("@Remark", null);
-                parameters.Add("@UserId", 0);
-                parameters.Add("@Procid", 6); // Search
-
-                var result = await connection.QueryAsync("[dbo].[SP_Unit]", parameters, commandType: CommandType.StoredProcedure);
-                return Ok(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-        #endregion
-
-        #region Supplier Category
-
-            [HttpPost("insert-supplier-category")]
-            public async Task<IActionResult> InsertSupplierCategory([FromBody] SupplierCategoryModel model)
-            {
-                try
-                {
-                    using var connection = _context.Database.GetDbConnection();
-                    await connection.OpenAsync();
-
-                    var parameters = new DynamicParameters();
-                    parameters.Add("@SuppCategId", 0);
-                    parameters.Add("@SuppCategNm", model.SuppCategNm);
-                    parameters.Add("@Remark", model.Remark);
-                    parameters.Add("@UserId", model.UserId);
-                    parameters.Add("@Procid", 1); // Insert
-
-                    var result = await connection.QueryAsync("[dbo].[SP_SupplierCategory]", parameters, commandType: CommandType.StoredProcedure);
-
-                    return Ok(new { success = true, message = "Supplier Category inserted successfully.", data = result });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { success = false, message = ex.Message });
-                }
-            }
-
-            [HttpPut("update-supplier-category")]
-            public async Task<IActionResult> UpdateSupplierCategory([FromBody] SupplierCategoryModel model)
-            {
-                try
-                {
-                    using var connection = _context.Database.GetDbConnection();
-                    await connection.OpenAsync();
-
-                    var parameters = new DynamicParameters();
-                    parameters.Add("@SuppCategId", model.SuppCategId);
-                    parameters.Add("@SuppCategNm", model.SuppCategNm);
-                    parameters.Add("@Remark", model.Remark);
-                    parameters.Add("@UserId", model.UserId); // UpdatedBy
-                    parameters.Add("@Procid", 2); // Update
-
-                    var result = await connection.QueryAsync("[dbo].[SP_SupplierCategory]", parameters, commandType: CommandType.StoredProcedure);
-
-                    return Ok(new { success = true, message = "Supplier Category updated successfully.", data = result });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { success = false, message = ex.Message });
-                }
-            }
-
-            [HttpGet("get-supplier-category/{id}")]
-            public async Task<IActionResult> GetSupplierCategoryById(int id)
-            {
-                try
-                {
-                    using var connection = _context.Database.GetDbConnection();
-                    await connection.OpenAsync();
-
-                    var parameters = new DynamicParameters();
-                    parameters.Add("@SuppCategId", id);
-                    parameters.Add("@SuppCategNm", null);
-                    parameters.Add("@Remark", null);
-                    parameters.Add("@UserId", 0);
-                    parameters.Add("@Procid", 3); // Get by ID
-
-                    var result = await connection.QueryAsync("[dbo].[SP_SupplierCategory]", parameters, commandType: CommandType.StoredProcedure);
-
-                    return Ok(new { success = true, data = result });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { success = false, message = ex.Message });
-                }
-            }
-
-            [HttpGet("get-all-supplier-categories")]
-            public async Task<IActionResult> GetAllSupplierCategories()
-            {
-                try
-                {
-                    using var connection = _context.Database.GetDbConnection();
-                    await connection.OpenAsync();
-
-                    var parameters = new DynamicParameters();
-                    parameters.Add("@SuppCategId", 0);
-                    parameters.Add("@SuppCategNm", null);
-                    parameters.Add("@Remark", null);
-                    parameters.Add("@UserId", 0);
-                    parameters.Add("@Procid", 4); // Get all
-
-                    var result = await connection.QueryAsync("[dbo].[SP_SupplierCategory]", parameters, commandType: CommandType.StoredProcedure);
-
-                    return Ok(new { success = true, data = result });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { success = false, message = ex.Message });
-                }
-            }
-
-            [HttpDelete("delete-supplier-category/{id}")]
-            public async Task<IActionResult> DeleteSupplierCategory(int id)
-            {
-                try
-                {
-                    using var connection = _context.Database.GetDbConnection();
-                    await connection.OpenAsync();
-
-                    var parameters = new DynamicParameters();
-                    parameters.Add("@SuppCategId", id);
-                    parameters.Add("@SuppCategNm", null);
-                    parameters.Add("@Remark", null);
-                    parameters.Add("@UserId", 0);
-                    parameters.Add("@Procid", 5); // Soft delete
-
-                    await connection.ExecuteAsync("[dbo].[SP_SupplierCategory]", parameters, commandType: CommandType.StoredProcedure);
-
-                    return Ok(new { success = true, message = "Supplier Category deleted successfully." });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { success = false, message = ex.Message });
-                }
-            }
-        
-
-        [HttpGet("search-supplier-category")]
-        public async Task<IActionResult> SearchSupplierCategory([FromQuery] string name)
-        {
-            try
-            {
-                using var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@SuppCategId", 0); // Not needed for search
-                parameters.Add("@SuppCategNm", string.IsNullOrWhiteSpace(name) ? null : name);
-                parameters.Add("@Remark", null);
-                parameters.Add("@UserId", 0);
-                parameters.Add("@Procid", 6); // Search
-
-                var result = await connection.QueryAsync("[dbo].[SP_SupplierCategory]", parameters, commandType: CommandType.StoredProcedure);
+                var result = await connection.QueryAsync<dynamic>(
+                    "[dbo].[Proc_demandForm]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
 
                 return Ok(new { success = true, data = result });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
             }
         }
 
+        [HttpPut("update-ho-demand/{DemandId}")]
+        public async Task<IActionResult> UpdateHODemand(int DemandId, [FromBody] DemandInsertDto model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 7); // HO Update
+                parameters.Add("@DemandId", DemandId); // From URL
+                parameters.Add("@ItemId", model.ItemId);
+                parameters.Add("@UnitId", model.UnitId);
+                parameters.Add("@MakeId", model.MakeId);
+                parameters.Add("@HOAppQty", model.HOAppQty); // Approved Quantity by HO
+                parameters.Add("@HORemarks", model.HORemarks); // Remarks by HO
+                parameters.Add("@StatusId", model.StatusId);
+                parameters.Add("@UserId", model.UserId);
+
+                var result = await connection.QueryAsync("[dbo].[Proc_demandForm]", parameters, commandType: CommandType.StoredProcedure);
+
+                return Ok(new { success = true, message = "HO Demand updated successfully.", data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("get-emp-demands")]
+        public async Task<IActionResult> GetEmpDemands()
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 8); // For get all where status = 'Forward to RM Office'
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "[dbo].[Proc_demandForm]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
 
 
         #endregion

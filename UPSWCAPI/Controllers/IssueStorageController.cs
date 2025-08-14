@@ -1,15 +1,36 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using Dapper;
+﻿
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using UPSWCAPI.Model;
+using static UPSWCAPI.Model.EnquiryDbContext;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Dapper;
+using Microsoft.AspNetCore.Http;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using UPSWCAPI.Services;
+using Microsoft.EntityFrameworkCore;
+using System.Xml.Linq;
+using Microsoft.Extensions.Configuration;
+using System.Globalization;
+using UPSWCAPI.Model.UPSWCAPI.Model;
+using Microsoft.Data.SqlClient;
 
 namespace UPSWCAPI.Controllers
 {
+    //[Route("api/[controller]")]
+    //[ApiController]
+
     [Route("api/[controller]")]
     [ApiController]
+    [EnableCors("allowCors")]
+
+
+    
     public class IssueStorageController : ControllerBase
     {
         private readonly IConfiguration _configuration;

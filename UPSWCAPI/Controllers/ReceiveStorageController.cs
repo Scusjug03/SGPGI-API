@@ -1,12 +1,24 @@
-﻿using System.Data;
-using Dapper;
-using Microsoft.AspNetCore.Cors;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using UPSWCAPI.Model;
+using static UPSWCAPI.Model.EnquiryDbContext;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Dapper;
+using Microsoft.AspNetCore.Http;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using UPSWCAPI.Services;
-
+using Microsoft.EntityFrameworkCore;
+using System.Xml.Linq;
+using Microsoft.Extensions.Configuration;
+using System.Globalization;
+using UPSWCAPI.Model.UPSWCAPI.Model;
+using Microsoft.Data.SqlClient;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 namespace UPSWCAPI.Controllers
 {
     [ApiController]
@@ -27,6 +39,7 @@ namespace UPSWCAPI.Controllers
         }
 
         private readonly EnquiryDbContext _context;
+
 
         [HttpPost("InsertReceiveStorage")]
         public async Task<IActionResult> InsertReceiveStorage([FromBody] ReceiveStorageDto model)

@@ -233,5 +233,196 @@ namespace UPSWCAPI.Controllers
             }
         }
 
+
+        [HttpPost("GetLedgerReport")]
+        public async Task<IActionResult> GetLedgerReport([FromBody] ReceiveStorageReportRequest model)
+        {
+            try
+            {
+                if (model == null || model.CommodityId <= 0)
+                    return BadRequest(new { message = "CommodityId is required." });
+
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@RegionId", model.RegionId);
+                parameters.Add("@OfficeId", model.OfficeId);
+                parameters.Add("@GodownId", model.GodownId);
+                parameters.Add("@AgencyId", model.AgencyId);
+                parameters.Add("@CommodityId", model.CommodityId);
+                parameters.Add("@FromDate", model.FromDate);
+                parameters.Add("@ToDate", model.ToDate);
+                parameters.Add("@Procid", 2);
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "Proc_ReceiveStorageReport",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
+            }
+        }
+
+        [HttpPost("ReceiveStorageReport")]
+        public async Task<IActionResult> ReceiveStorageReport([FromBody] ReceiveStorageReportRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@RegionId", model.RegionId);
+                parameters.Add("@OfficeId", model.OfficeId);
+                parameters.Add("@GodownId", model.GodownId);
+                parameters.Add("@AgencyId", model.AgencyId);
+                parameters.Add("@CommodityId", model.CommodityId);
+                parameters.Add("@FromDate", model.FromDate);
+                parameters.Add("@ToDate", model.ToDate);
+                parameters.Add("@Procid", 1); // <<< IMPORTANT: Ledger (Opening+Receipt+Issue)
+                var result = await connection.QueryAsync<dynamic>(
+                  "Proc_ReceiveStorageReport",
+                  parameters,
+                  commandType: CommandType.StoredProcedure
+              );
+
+                return Ok(result);
+               
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("GetDashboardData")]
+        public async Task<IActionResult> GetDashboardData([FromBody] RecoveryDashboardRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Id", model.Id);
+                parameters.Add("@ProcId", model.ProcId);
+
+                var result = await connection.QueryAsync<dynamic>(
+                   "Proc_RecoveryDashboard",
+                   parameters,
+                   commandType: CommandType.StoredProcedure
+               );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpPost("IssueStorageReport")]
+        public async Task<IActionResult> IssueStorageReport([FromBody] ReceiveStorageReportRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@RegionId", model.RegionId);
+                parameters.Add("@OfficeId", model.OfficeId);
+                parameters.Add("@GodownId", model.GodownId);
+                parameters.Add("@AgencyId", model.AgencyId);
+                parameters.Add("@CommodityId", model.CommodityId);
+                parameters.Add("@FromDate", model.FromDate);
+                parameters.Add("@ToDate", model.ToDate);
+                parameters.Add("@Procid", 3); // <<< IMPORTANT: Ledger (Opening+Receipt+Issue)
+                var result = await connection.QueryAsync<dynamic>(
+                  "Proc_ReceiveStorageReport",
+                  parameters,
+                  commandType: CommandType.StoredProcedure
+              );
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #region Anushka
+        [HttpPost("TruckReport")]
+        public async Task<IActionResult> TruckReport([FromBody] ReceiveStorageReportRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@RegionId", model.RegionId);
+                parameters.Add("@OfficeId", model.OfficeId);
+                //parameters.Add("@GodownId", model.GodownId);
+                //parameters.Add("@AgencyId", model.AgencyId);
+                parameters.Add("@CommodityId", model.CommodityId);
+                parameters.Add("@FromDate", model.FromDate);
+                parameters.Add("@ToDate", model.ToDate);
+                parameters.Add("@Procid", 4); // <<< IMPORTANT: Ledger (Opening+Receipt+Issue)
+                var result = await connection.QueryAsync<dynamic>(
+                  "Proc_ReceiveStorageReport",
+                  parameters,
+                  commandType: CommandType.StoredProcedure
+              );
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        //Commoidity and Moisture
+        [HttpPost("CommodityReport")]
+        public async Task<IActionResult> CommodityReport([FromBody] ReceiveStorageReportRequest model)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@RegionId", model.RegionId);
+                parameters.Add("@OfficeId", model.OfficeId);
+                parameters.Add("@CommodityId", model.CommodityId);
+                parameters.Add("@FromDate", model.FromDate);
+                parameters.Add("@ToDate", model.ToDate);
+                parameters.Add("@Procid", 5); // Commodity Report
+
+                var result = await connection.QueryAsync<dynamic>(
+                    "Proc_ReceiveStorageReport",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+        #endregion
     }
 }

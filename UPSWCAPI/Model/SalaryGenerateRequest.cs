@@ -18,6 +18,8 @@
 
     public class SalaryRptRequest
     {
+    
+        public int ProcId { get; set; }
         public int UserId { get; set; }
         public int OfficeId { get; set; }
         public int EmpId { get; set; }
@@ -27,6 +29,7 @@
         public int SubDeptId { get; set; }
         public int DesignationId { get; set; }
         public string Salarytype { get; set; } = string.Empty;
+        public int CategoryId { get; set; }
     }
 
 }

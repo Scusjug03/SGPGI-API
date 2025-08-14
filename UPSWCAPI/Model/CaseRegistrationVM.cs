@@ -143,11 +143,69 @@ namespace UPSWCAPI.Model
         public string CourtType { get; set; } = string.Empty;
     }
 
+    public class CaseApplicant
+    {
+        public int CaseApplicantId { get; set; }
+        public int RegistrationId { get; set; }
+        public int GovDeptId { get; set; }
+        public int empId{ get; set; }
+        public string Another { get; set; } = string.Empty;
+        public int DesignationId { get; set; }
+        public int DepartmentId { get; set; }
+    }
+
+    public class CaseNonApplicant
+    {
+        public int CaseNonApplicantId { get; set; }
+        public int RegistrationId { get; set; }
+        public int GovDeptId { get; set; }
+        public int EmpId { get; set; }
+        public string Another { get; set; } = string.Empty;
+        public int DesignationId { get; set; }
+        public int DepartmentId { get; set; }
+    }
+
+    public class AssignDepartment
+    {
+        public int CaseAssignId { get; set; }
+        public int RegistrationId { get; set; }
+        public int StandingCounselId { get; set; }
+        public string AssignOn { get; set; } = string.Empty;
+        public string VakalatnamaDate { get; set; } = string.Empty;
+        public string ReplyDate { get; set; } = string.Empty;
+        public string Remarks { get; set; } = string.Empty;
+        public string Contact { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+    }
+
     public class LegalStandingCounsilReport
     {
         public int ProcId { get; set; }
         public int CourtTypeId { get; set; }
         public int CourtId { get; set; }
+        public int UserId { get; set; }
+    }
+
+    public class GetAllCaseDetail
+    {
+        public int RegistrationId { get; set; }
+        public string LCNo { get; set; } = string.Empty;
+        public int courtTypeId { get; set; }
+        public int courtId { get; set; }
+        public int caseTypeId { get; set; }
+        public string caseNo { get; set; } = string.Empty;
+        public string caseRegistrationDate { get; set; } = string.Empty;
+        public string fileNo { get; set; } = string.Empty;
+        public string sectionId { get; set; } = string.Empty;
+        public string Prayer { get; set; } = string.Empty;
+        public int IsDecided { get; set; }
+        public string CaseFile { get; set; } = string.Empty;
+        public string NarrativeDoc { get; set; } = string.Empty;
+        public string VakalatnamaDoc { get; set; } = string.Empty;
+        public int CaseStatusId { get; set; }
+        public string preCaseNo { get; set; } = string.Empty;
+        public string caseRecDate { get; set; } = string.Empty;
+        public string title { get; set; } = string.Empty;
         public int UserId { get; set; }
     }
 }

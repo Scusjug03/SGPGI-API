@@ -15,6 +15,7 @@
         public int orderBy { get; set; }
         public int empId { get; set; }
         public int procId { get; set; }
+        public int CategoryId { get; set; }
     }
 
 }

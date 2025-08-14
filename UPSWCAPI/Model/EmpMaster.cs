@@ -4,6 +4,7 @@
 
     public class EmpMaster
     {
+        public int EmpId { get; set; }
         public int userId { get; set; }
         public int employementId { get; set; }
         public int officeId { get; set; }

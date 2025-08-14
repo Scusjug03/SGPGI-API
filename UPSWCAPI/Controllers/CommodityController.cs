@@ -40,10 +40,16 @@ namespace UPSWCAPI.Controllers
 
         private readonly EnquiryDbContext _context;
 
-        [HttpGet("test")]
-        public IActionResult Test()
+        //[HttpGet("test")]
+        //public IActionResult Test()
+        //{
+        //    return Ok("API working");
+        //}
+
+        [HttpGet]
+        public IActionResult Index()
         {
-            return Ok("API working");
+            return Ok("Demand API is running.");
         }
 
         #region Commodity
@@ -318,7 +324,7 @@ namespace UPSWCAPI.Controllers
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcId", 1);
                 parameters.Add("@DepartmentId", model.DepartmentId);
-                parameters.Add("@DepartmentHead", model.DepartmentHead);
+                parameters.Add("@M_Department", model.DepartmentHead);
                 //parameters.Add("@Status", model.Status ?? "N");
 
                 await connection.ExecuteAsync("[dbo].[Proc_MasterDepartment]", parameters, commandType: CommandType.StoredProcedure);
@@ -345,7 +351,7 @@ namespace UPSWCAPI.Controllers
                 var parameters = new DynamicParameters();
                 parameters.Add("@ProcId", 2);
                 parameters.Add("@DepartmentId", model.DepartmentId);
-                parameters.Add("@DepartmentHead", model.DepartmentHead);
+                parameters.Add("@M_Department", model.DepartmentHead);
 
                 await connection.ExecuteAsync("[dbo].[Proc_MasterDepartment]", parameters, commandType: CommandType.StoredProcedure);
 

@@ -15,5 +15,14 @@
         public string? HORemarks { get; set; }
         public string? RMOfficeRemarks { get; set; }
         public int? UserId { get; set; }
+        public int? OfficeId { get; set; }
+        public int? RegionId { get; set; }
+    }
+
+    public class DemandBatchDto
+    {
+        public int OfficeId { get; set; }
+        public int RegionId { get; set; }
+        public List<DemandInsertDto> Entries { get; set; }
     }
 }
