@@ -48,4 +48,19 @@ namespace UPSWCAPI.Model
     //    [Required]
     //    public List<IssueStorage> Details { get; set; } = new();
     //}
+
+
+   
+    public class ReceiveStorageReportRequest
+    {
+        public int RegionId { get; set; }
+        public int OfficeId { get; set; }
+        public int GodownId { get; set; }
+        public int AgencyId { get; set; }
+        public int CommodityId { get; set; }
+        public string FromDate { get; set; } = string.Empty;
+        public string ToDate { get; set; } = string.Empty;
+        public int  ProcId { get; set; }
+    }
+
 }

@@ -109,6 +109,7 @@ namespace UPSWCAPI.Controllers
                 usertypeId = user.UsertypeId,
                 roleTypeId = user.RoleTypeId,
                 officeId = user.OfficeId,
+                regionId = user.RegionId,
                 circleId = user.CircleId,
                 UserName = user.userName,
                 empId   = user.EmpId,
