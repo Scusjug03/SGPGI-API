@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using System.Data;
+using Dapper;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http;
@@ -251,6 +252,7 @@ namespace UPSWCAPI.Controllers
                 return BadRequest(new { status = false, message = ex.Message });
             }
         }
+
         [HttpPut("UpdateFinalDetailsAtEntry/{receiveId}")]
         public async Task<IActionResult> UpdateFinalDetails(int receiveId, [FromBody] ReceiveStorageFinal model)
         {
@@ -269,7 +271,7 @@ namespace UPSWCAPI.Controllers
                     cmd.Parameters.Add(new SqlParameter("@TotalBagWeight_kg", model.TotalBagWeightKg));
                     cmd.Parameters.Add(new SqlParameter("@NetWeight", model.NetWeight));
                     cmd.Parameters.Add(new SqlParameter("@EnchargeName", model.EnchargeName));
-                    cmd.Parameters.Add(new SqlParameter("@UpdatedBy", model.UpdatedBy));
+                    cmd.Parameters.Add(new SqlParameter("@UpdatedBy", model.UpdatedBy));                    
 
                     await conn.OpenAsync();
                     await cmd.ExecuteNonQueryAsync();
@@ -284,6 +286,7 @@ namespace UPSWCAPI.Controllers
             }
         }
 
+
         /* ||---------- ISSUE STORAGE APIs ------------------ || */
 
 
@@ -293,6 +296,7 @@ namespace UPSWCAPI.Controllers
             using var conn = new SqlConnection(_configuration.GetConnectionString("EnquiryCon"));
             using var cmd = new SqlCommand("sp_InsertIssueStorageAtWindow", conn);
             cmd.CommandType = CommandType.StoredProcedure;
+
             cmd.Parameters.AddWithValue("@WarehouseId", model.WarehouseId);
             cmd.Parameters.AddWithValue("@OfficeId", model.OfficeId);
             cmd.Parameters.AddWithValue("@FinancialYear", model.FinancialYear);
