@@ -110,6 +110,7 @@ namespace UPSWCAPI.Controllers
                 p.Add("@GOVT_ACC_FLAG", model.GOVT_ACC_FLAG);
                 p.Add("@ACCO_CODE", model.ACCO_CODE);
                 p.Add("@BANK_CODE", model.BANK_CODE);
+                p.Add("@PAN_NO", model.PAN_NO);
 
                 // Salary
                 p.Add("@PAY_GRADE", model.PAY_GRADE);

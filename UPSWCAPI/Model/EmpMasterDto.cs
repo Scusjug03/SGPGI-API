@@ -47,6 +47,7 @@
         public string? GOVT_ACC_FLAG { get; set; }
         public string? ACCO_CODE { get; set; }
         public string? BANK_CODE { get; set; }
+        public string? PAN_NO { get; set; }
 
         // Salary
         public int? PAY_GRADE { get; set; }
