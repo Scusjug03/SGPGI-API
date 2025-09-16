@@ -70,18 +70,41 @@ namespace UPSWCAPI.Controllers
                 p.Add("@ECODE", model.ECODE);
                 p.Add("@LoginUser", model.LoginUser);
 
-                // — Explicit safe mapping: add only SP parameters (map as many as needed)
+                // Category
                 p.Add("@EmployementId", model.EmployementId);
                 p.Add("@WTypeId", model.WTypeId);
 
+                // Personal
                 p.Add("@EMP_NAME", model.EMP_NAME);
                 p.Add("@FATH_NAME", model.FATH_NAME);
-                p.Add("@DATE_OF_BIRTH", model.DATE_OF_BIRTH);
+                p.Add("@DATE_OF_BIRTH", model.DATE_OF_BIRTH, dbType: DbType.DateTime);
                 p.Add("@QUALIFICATION", model.QUALIFICATION);
                 p.Add("@SEX", model.SEX);
                 p.Add("@MARITAL_STATUS", model.MARITAL_STATUS);
                 p.Add("@LOC_ADD1", model.LOC_ADD1);
-                p.Add("@LOC_PIN", model.LOC_PIN);
+                p.Add("@LOC_ADD2", model.LOC_ADD2);
+                p.Add("@LOC_ADD3", model.LOC_ADD3);
+                p.Add("@LOC_PIN", model.LOC_PIN, dbType: DbType.Int32);
+                p.Add("@LOC_STATE", model.LOC_STATE);
+                p.Add("@PAR_ADD1", model.PAR_ADD1);
+                p.Add("@PAR_ADD2", model.PAR_ADD2);
+                p.Add("@PAR_ADD3", model.PAR_ADD3);
+                p.Add("@PAR_PIN", model.PAR_PIN, dbType: DbType.Int32);
+                p.Add("@PAR_STATE", model.PAR_STATE);
+                p.Add("@HOME_TOWN", model.HOME_TOWN);
+                p.Add("@NO_OF_CHILD", model.NO_OF_CHILD, dbType: DbType.Int32);
+                p.Add("@WIFE_GOVT_SER_FLAG", model.WIFE_GOVT_SER_FLAG);
+                p.Add("@BIRTH_PLACE", model.BIRTH_PLACE);
+                p.Add("@UNIV", model.UNIV);
+                p.Add("@QALIFIC1", model.QALIFIC1);
+                p.Add("@QALIFIC2", model.QALIFIC2);
+                p.Add("@QALIFIC3", model.QALIFIC3);
+                p.Add("@QALIFIC4", model.QALIFIC4);
+                p.Add("@Q_STATUS", model.Q_STATUS);
+                p.Add("@RES_PHONE", model.RES_PHONE);
+                p.Add("@WIFE_SER_FLAG", model.WIFE_SER_FLAG);
+                p.Add("@WIFE_ECODE", model.WIFE_ECODE);   // <-- CORRECT parameter name
+
                 p.Add("@PHONE_NO", model.PHONE_NO);
                 p.Add("@EMAIL", model.EMAIL);
                 p.Add("@ReligionId", model.ReligionId);
@@ -101,7 +124,7 @@ namespace UPSWCAPI.Controllers
                 p.Add("@RECFLAG", model.RECFLAG);
                 p.Add("@DEPTTID", model.DEPTTID);
                 p.Add("@DEP_TYPE", model.DEP_TYPE);
-                p.Add("@DATE_OF_JOIN", model.DATE_OF_JOIN);
+                p.Add("@DATE_OF_JOIN", model.DATE_OF_JOIN, dbType: DbType.Date);
                 p.Add("@CategoryId", model.CategoryId);
 
                 // Account
@@ -143,12 +166,12 @@ namespace UPSWCAPI.Controllers
 
                 // Pension & others
                 p.Add("@PRAN_NO", model.PRAN_NO);
-                p.Add("@GPF_FINAL_DT", model.GPF_FINAL_DT);
+                p.Add("@GPF_FINAL_DT", model.GPF_FINAL_DT, dbType: DbType.Date);
                 p.Add("@PENSION_TYPE", model.PENSION_TYPE);
                 p.Add("@COMMUT_BSK", model.COMMUT_BSK);
-                p.Add("@PENS_ORDER_DT", model.PENS_ORDER_DT);
+                p.Add("@PENS_ORDER_DT", model.PENS_ORDER_DT, dbType: DbType.DateTime);
                 p.Add("@PPO_NO", model.PPO_NO);
-                p.Add("@DT_OF_PENSION", model.DT_OF_PENSION);
+                p.Add("@DT_OF_PENSION", model.DT_OF_PENSION, dbType: DbType.Date);
                 p.Add("@PERSONAL_IDENTITY", model.PERSONAL_IDENTITY);
                 p.Add("@HIGHT_OF_PENSION", model.HIGHT_OF_PENSION);
 
@@ -168,10 +191,10 @@ namespace UPSWCAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log ex as needed
                 return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
             }
         }
+
 
 
         [HttpGet("get-employee")]

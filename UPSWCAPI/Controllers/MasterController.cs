@@ -104,43 +104,43 @@ namespace UPSWCAPI.Controllers
         //    return list;
         //}
 
-        [HttpPost("GetAllModuleList")]
-        public async Task<IEnumerable<ModuleMaster>> GetAllModuleList([FromBody] ModuleMaster model)
-        {
-            var dbparams = new DynamicParameters();
-            dbparams.Add("ProjectId", model.projectId, DbType.Int32);
-            dbparams.Add("ModuleName", model.moduleName, DbType.String);
-            dbparams.Add("ModuleStatus", model.moduleStatus, DbType.String);
-            dbparams.Add("Sno", model.sno, DbType.Int32);
-            dbparams.Add("UsertypeId", model.UsertypeId, DbType.Int32);
-            dbparams.Add("RoleTypeId", model.RoleTypeId, DbType.Int32);
-            dbparams.Add("EmpId", model.EmpId, DbType.Int32);
-            dbparams.Add("ProcId", 4);
-            var result = await Task.FromResult(_dapper.GetAll<ModuleMaster>(
-                "[dbo].[Proc_MenuMaster]", dbparams, commandType: CommandType.StoredProcedure));
+        //[HttpPost("GetAllModuleList")]
+        //public async Task<IEnumerable<ModuleMaster>> GetAllModuleList([FromBody] ModuleMaster model)
+        //{
+        //    var dbparams = new DynamicParameters();
+        //    dbparams.Add("ProjectId", model.projectId, DbType.Int32);
+        //    dbparams.Add("ModuleName", model.moduleName, DbType.String);
+        //    dbparams.Add("ModuleStatus", model.moduleStatus, DbType.String);
+        //    dbparams.Add("Sno", model.sno, DbType.Int32);
+        //    dbparams.Add("UsertypeId", model.UsertypeId, DbType.Int32);
+        //    dbparams.Add("RoleTypeId", model.RoleTypeId, DbType.Int32);
+        //    dbparams.Add("EmpId", model.EmpId, DbType.Int32);
+        //    dbparams.Add("ProcId", 4);
+        //    var result = await Task.FromResult(_dapper.GetAll<ModuleMaster>(
+        //        "[dbo].[Proc_MenuMaster]", dbparams, commandType: CommandType.StoredProcedure));
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        [HttpPost("GetAllMenuList")]
-        public async Task<IEnumerable<ModuleMaster>> GetAllMenuList([FromBody] ModuleMaster model)
-        {
-            var dbparams = new DynamicParameters();
-            dbparams.Add("ProjectId", model.projectId, DbType.Int32);
-            dbparams.Add("ModuleId", model.moduleId, DbType.Int32);
-            dbparams.Add("MenuName", model.menuName, DbType.String);
-            dbparams.Add("MenuId", model.menuId, DbType.Int32);
-            dbparams.Add("RouterLink", model.routerLink, DbType.String);
-            dbparams.Add("Sno", model.sno, DbType.Int32);
-            dbparams.Add("UsertypeId", model.UsertypeId, DbType.Int32);
-            dbparams.Add("RoleTypeId", model.RoleTypeId, DbType.Int32);
-            dbparams.Add("EmpId", model.EmpId, DbType.Int32);
-            dbparams.Add("ProcId", 7);
-            var result = await Task.FromResult(_dapper.GetAll<ModuleMaster>(
-                "[dbo].[Proc_MenuMaster]", dbparams, commandType: CommandType.StoredProcedure));
+        //[HttpPost("GetAllMenuList")]
+        //public async Task<IEnumerable<ModuleMaster>> GetAllMenuList([FromBody] ModuleMaster model)
+        //{
+        //    var dbparams = new DynamicParameters();
+        //    dbparams.Add("ProjectId", model.projectId, DbType.Int32);
+        //    dbparams.Add("ModuleId", model.moduleId, DbType.Int32);
+        //    dbparams.Add("MenuName", model.menuName, DbType.String);
+        //    dbparams.Add("MenuId", model.menuId, DbType.Int32);
+        //    dbparams.Add("RouterLink", model.routerLink, DbType.String);
+        //    dbparams.Add("Sno", model.sno, DbType.Int32);
+        //    dbparams.Add("UsertypeId", model.UsertypeId, DbType.Int32);
+        //    dbparams.Add("RoleTypeId", model.RoleTypeId, DbType.Int32);
+        //    dbparams.Add("EmpId", model.EmpId, DbType.Int32);
+        //    dbparams.Add("ProcId", 7);
+        //    var result = await Task.FromResult(_dapper.GetAll<ModuleMaster>(
+        //        "[dbo].[Proc_MenuMaster]", dbparams, commandType: CommandType.StoredProcedure));
 
-            return result;
-        }
+        //    return result;
+        //}
 
 
         [HttpPut("UpdateModule")]
@@ -2652,6 +2652,55 @@ public async Task<IActionResult> DeleteFinancialYear(int id)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
             }
+        }
+        #endregion
+
+        #region SGPGI
+        [HttpPost("GetAllModuleList")]
+        public async Task<IEnumerable<ModuleMaster>> GetAllModuleList([FromBody] ModuleMaster model)
+        {
+            var dbparams = new DynamicParameters();
+            dbparams.Add("ProjectId", model.projectId, DbType.Int32);
+            dbparams.Add("ModuleName", model.moduleName, DbType.String);
+            dbparams.Add("ModuleStatus", model.moduleStatus, DbType.String);
+            dbparams.Add("Sno", model.sno, DbType.Int32);
+            dbparams.Add("UsertypeId", model.UsertypeId, DbType.Int32);
+            dbparams.Add("RoleTypeId", model.RoleTypeId, DbType.Int32);
+            dbparams.Add("EmpId", model.EmpId, DbType.Int32);
+
+            // अगर Personal Login है तो EmpId check नहीं होगा
+            dbparams.Add("ProcId", model.IsPersonalLogin ? 8 : 4);
+
+            var result = await Task.FromResult(_dapper.GetAll<ModuleMaster>(
+                "[dbo].[Proc_MenuMaster]", dbparams, commandType: CommandType.StoredProcedure));
+
+            // Distinct result वापस करो ताकि frontend पर duplicate न आए
+            return result.GroupBy(x => x.moduleId).Select(g => g.First()).ToList();
+        }
+
+
+        [HttpPost("GetAllMenuList")]
+        public async Task<IEnumerable<ModuleMaster>> GetAllMenuList([FromBody] ModuleMaster model)
+        {
+            var dbparams = new DynamicParameters();
+            dbparams.Add("ProjectId", model.projectId, DbType.Int32);
+            dbparams.Add("ModuleId", model.moduleId, DbType.Int32);
+            dbparams.Add("MenuName", model.menuName, DbType.String);
+            dbparams.Add("MenuId", model.menuId, DbType.Int32);
+            dbparams.Add("RouterLink", model.routerLink, DbType.String);
+            dbparams.Add("Sno", model.sno, DbType.Int32);
+            dbparams.Add("UsertypeId", model.UsertypeId, DbType.Int32);
+            dbparams.Add("RoleTypeId", model.RoleTypeId, DbType.Int32);
+            dbparams.Add("EmpId", model.EmpId, DbType.Int32);
+
+            // अगर Personal Login है तो EmpId check नहीं होगा
+            dbparams.Add("ProcId", model.IsPersonalLogin ? 9 : 7);
+
+            var result = await Task.FromResult(_dapper.GetAll<ModuleMaster>(
+                "[dbo].[Proc_MenuMaster]", dbparams, commandType: CommandType.StoredProcedure));
+
+            // Distinct result वापस करो ताकि frontend पर duplicate न आए
+            return result.GroupBy(x => x.menuId).Select(g => g.First()).ToList();
         }
         #endregion
 
