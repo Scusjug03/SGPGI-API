@@ -132,7 +132,7 @@
         public string BANK_AC { get; set; }
         public string GPF_NO { get; set; }
         public string PAY_GRADE { get; set; }
-        public int? DEPTT { get; set; }
+        public string? DEPTT { get; set; }
         public string DESIG_CODE { get; set; }
         public string GIS_NO { get; set; }
         public string LEVEL_CODE { get; set; }

@@ -266,7 +266,7 @@ namespace UPSWCAPI.Controllers
                 parameters.Add("@YR_NO", year);
                 parameters.Add("@MTH_NO", month);
 
-                using (var connection = new SqlConnection(Configuration.GetConnectionString("DefaultConnection")))
+                using (var connection = new SqlConnection(Configuration.GetConnectionString("EnquiryCon")))
                 {
                     var result = await connection.QueryAsync<PayslipDto>(
                         "Proc_PAYSLIP",
