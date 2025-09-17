@@ -48,7 +48,7 @@ namespace UPSWCAPI.Controllers
             return Ok("SGPGI API is running.");
         }
 
-
+        #region Employee registration from
 
         [HttpPost("save-employee")]
         public async Task<IActionResult> SaveEmployee([FromBody] EmpMasterDto model)
@@ -114,7 +114,7 @@ namespace UPSWCAPI.Controllers
 
                 // Department
                 p.Add("@GRP", model.GRP);
-                p.Add("@SECTION", model.SECTION);
+                p.Add("@SECTIONID", model.SECTIONID);
                 p.Add("@DEPTT_CODE", model.DEPTT_CODE);
                 p.Add("@DESIGID", model.DESIGID);
                 p.Add("@DESIG_CODE", model.DESIG_CODE);
@@ -125,6 +125,8 @@ namespace UPSWCAPI.Controllers
                 p.Add("@DEPTTID", model.DEPTTID);
                 p.Add("@DEP_TYPE", model.DEP_TYPE);
                 p.Add("@DATE_OF_JOIN", model.DATE_OF_JOIN, dbType: DbType.Date);
+                p.Add("@RETIRE_DATE", model.RETIRE_DATE, dbType: DbType.Date);
+                p.Add("@CONFIRM_DATE", model.CONFIRM_DATE, dbType: DbType.Date);
                 p.Add("@CategoryId", model.CategoryId);
 
                 // Account
@@ -249,6 +251,43 @@ namespace UPSWCAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
             }
         }
+        #endregion
 
+        #region Payslip
+
+        [HttpGet("GetPayslip")]
+        public async Task<IActionResult> GetPayslip(string ecode, int? year = null, int? month = null)
+        {
+            try
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 1);         // we are using procId = 1 for payslip
+                parameters.Add("@ECODE", ecode);
+                parameters.Add("@YR_NO", year);
+                parameters.Add("@MTH_NO", month);
+
+                using (var connection = new SqlConnection(Configuration.GetConnectionString("DefaultConnection")))
+                {
+                    var result = await connection.QueryAsync<PayslipDto>(
+                        "Proc_PAYSLIP",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    if (result == null || !result.Any())
+                        return NotFound("No payslip data found for the given parameters.");
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Error retrieving payslip: {ex.Message}");
+            }
+        }
+
+
+        #endregion
     }
 }

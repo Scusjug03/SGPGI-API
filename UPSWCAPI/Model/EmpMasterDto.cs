@@ -1,5 +1,6 @@
 ﻿namespace UPSWCAPI.Model
 {
+    // Employee Registration
     public class EmpMasterDto
     {
         // keys used by stored proc
@@ -49,7 +50,7 @@
 
         // Department
         public string? GRP { get; set; }
-        public string? SECTION { get; set; }
+        public int? SECTIONID { get; set; }
         public string? DEPTT_CODE { get; set; }
         public int? DESIGID { get; set; }
         public string? DESIG_CODE { get; set; }
@@ -60,7 +61,9 @@
         public int? DEPTTID { get; set; }
         public string? DEP_TYPE { get; set; }
         public DateTime? DATE_OF_JOIN { get; set; }
-        public int? CategoryId { get; set; }
+        public DateTime? CONFIRM_DATE { get; set; }
+        public DateTime? RETIRE_DATE { get; set; }
+        public int? CategoryId { get; set; } 
 
         // Account
         public int? BANKID { get; set; }
@@ -115,5 +118,63 @@
         public string? IMP_MSG { get; set; }
         public string? NO_DUES { get; set; }
         public string? NO_DUES_REMARK { get; set; }
+    }
+
+    //Payslip
+
+    public class PayslipDto
+    {
+        public string ECODE { get; set; }
+        public int YR_NO { get; set; }
+        public int MTH_NO { get; set; }
+        public string EMP_NAME { get; set; }
+        public string PAN_NO { get; set; }
+        public string BANK_AC { get; set; }
+        public string GPF_NO { get; set; }
+        public string PAY_GRADE { get; set; }
+        public int? DEPTT { get; set; }
+        public string DESIG_CODE { get; set; }
+        public string GIS_NO { get; set; }
+        public string LEVEL_CODE { get; set; }
+        public decimal BASIC_SAL { get; set; }
+        public decimal GRADE_PAY { get; set; }
+        public string PRAN_NO { get; set; }
+        public decimal NET_SAL { get; set; }
+        public string GROUPTY { get; set; }
+
+        // Allowances
+        public decimal? NPA { get; set; }
+        public decimal? DA_ON_NPA { get; set; }
+        public decimal? TA { get; set; }
+        public decimal? DA_ON_TA { get; set; }
+        public decimal? DA { get; set; }
+        public decimal? DEP_ALW { get; set; }
+        public decimal? HRA { get; set; }
+        public decimal? BOOK_ALW { get; set; }
+        public decimal? NURSING { get; set; }
+        public decimal? UNIFORM { get; set; }
+        public decimal? NEWS_ALW { get; set; }
+        public decimal? OTH_ALW1 { get; set; }
+        public decimal? OTH_ALW2 { get; set; }
+        public decimal? GROSS_EARN { get; set; }
+        public decimal? PAT_CARE { get; set; }
+
+        // Deductions
+        public decimal? GPF_DED { get; set; }
+        public decimal? GPF_ADV_DED { get; set; }
+        public decimal? GIS_DED { get; set; }
+        public decimal? NPS_DED { get; set; }
+        public decimal? WATER_ELEC_DED { get; set; }
+        public decimal? WATER_DED { get; set; }
+        public decimal? TELE_PH_DED { get; set; }
+        public decimal? RELIEF_FUND_DED { get; set; }
+        public decimal? IT_TAX_DED { get; set; }
+        public decimal? HBA_DED { get; set; }
+        public decimal? CREDIT_SAL_ADV_DED { get; set; }
+        public decimal? SALARY_RECOVERY { get; set; }
+        public decimal? FST_ADV_DED { get; set; }
+        public decimal? BUS_DED { get; set; }
+        public decimal? CAR_ADV_DED { get; set; }
+        public decimal? BENEVOLENT_DED { get; set; }
     }
 }
