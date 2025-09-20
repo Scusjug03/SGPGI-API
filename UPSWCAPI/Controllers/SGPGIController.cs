@@ -287,6 +287,64 @@ namespace UPSWCAPI.Controllers
             }
         }
 
+        [HttpPost("GetPayslip")]
+        public async Task<IActionResult> GetPayslip([FromBody] PayslipRequestDto request)
+        {
+            try
+            {
+                using var connection = new SqlConnection(Configuration.GetConnectionString("EnquiryCon"));
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 2);
+                parameters.Add("@ECODE", request.ECODE);
+                parameters.Add("@StartYR", request.StartYR);
+                parameters.Add("@StartMTH", request.StartMTH);
+                parameters.Add("@EndYR", request.EndYR);
+                parameters.Add("@EndMTH", request.EndMTH);
+
+                var payslipData = await connection.QueryAsync<PayslipDto>(
+                    "Proc_PAYSLIP",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                if (payslipData == null || !payslipData.Any())
+                    return NotFound("No payslip records found for the given parameters.");
+
+                return Ok(payslipData);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("PayslipMonthwise")]
+        public async Task<IActionResult> GetPayslipMonthwise([FromBody] PayslipRequestDto request)
+        {
+            try
+            {
+                var queryParams = new DynamicParameters();
+                queryParams.Add("@ProcId", 3);
+                queryParams.Add("@ECODE", request.ECODE);
+                queryParams.Add("@StartYR", request.StartYR);
+                queryParams.Add("@StartMTH", request.StartMTH);
+                queryParams.Add("@EndYR", request.EndYR);
+                queryParams.Add("@EndMTH", request.EndMTH);
+
+                var result = await Task.FromResult(_dapper.GetAll<PayslipDto>(
+                    "Proc_PAYSLIP", queryParams, commandType: CommandType.StoredProcedure
+                ));
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
 
         #endregion
     }

@@ -267,6 +267,43 @@ namespace UPSWCAPI.Controllers
 
         #region SGPGI
 
+        //[HttpPost(nameof(CheckPersonalLogin))]
+        //public async Task<IActionResult> CheckPersonalLogin(UserModel model)
+        //{
+        //    if (model == null)
+        //        return BadRequest(new { Message = "Invalid Request" });
+
+        //    var peruser = await Task.FromResult(_dapper.Get<UserModel>(
+        //        $@"SELECT  
+        //    EmpId,
+        //    EmpCode AS UserName,
+        //    CONVERT(VARCHAR(10), DOB, 103) AS Password,
+        //    'PersonalDashboard' AS DashboardPage
+        //FROM M_EMP_MAST
+        //WHERE EmpCode = '{model.userName}'",
+        //        null, commandType: CommandType.Text));
+
+        //    if (peruser == null)
+        //        return NotFound(new { Message = "User not found!" });
+
+        //    if (peruser.password.Trim() != model.password.Trim())
+        //        return BadRequest(new { Message = "Password is Incorrect" });
+
+        //    peruser.Token = CreateJwt(peruser);
+
+        //    // ✅ यहाँ पर IsPersonalLogin भी भेजेंगे
+        //    return Ok(new
+        //    {
+        //        success = true,
+        //        message = "Success",
+        //        data = new { AccessToken = peruser.Token },
+        //        userid = peruser.EmpId,
+        //        userName = peruser.userName,
+        //        empId = peruser.EmpId,
+        //        isPersonalLogin = true   // नया flag
+        //    });
+        //}
+
         [HttpPost(nameof(CheckPersonalLogin))]
         public async Task<IActionResult> CheckPersonalLogin(UserModel model)
         {
@@ -275,12 +312,12 @@ namespace UPSWCAPI.Controllers
 
             var peruser = await Task.FromResult(_dapper.Get<UserModel>(
                 $@"SELECT  
-            EmpId,
-            EmpCode AS UserName,
-            CONVERT(VARCHAR(10), DOB, 103) AS Password,
-            'PersonalDashboard' AS DashboardPage
-        FROM EmpDetail
-        WHERE EmpCode = '{model.userName}'",
+                EMPID,
+                ECODE AS UserName,
+                CONVERT(VARCHAR(10), DATE_OF_BIRTH, 103) AS Password,
+                'PersonalDashboard' AS DashboardPage
+          FROM M_EMP_MAST
+          WHERE ECODE = '{model.userName}'",
                 null, commandType: CommandType.Text));
 
             if (peruser == null)
@@ -291,7 +328,6 @@ namespace UPSWCAPI.Controllers
 
             peruser.Token = CreateJwt(peruser);
 
-            // ✅ यहाँ पर IsPersonalLogin भी भेजेंगे
             return Ok(new
             {
                 success = true,
@@ -303,6 +339,7 @@ namespace UPSWCAPI.Controllers
                 isPersonalLogin = true   // नया flag
             });
         }
+
         #endregion
 
 

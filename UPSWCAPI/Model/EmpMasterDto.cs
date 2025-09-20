@@ -127,22 +127,29 @@
         public string ECODE { get; set; }
         public int YR_NO { get; set; }
         public int MTH_NO { get; set; }
-        public string EMP_NAME { get; set; }
-        public string PAN_NO { get; set; }
-        public string BANK_AC { get; set; }
-        public string GPF_NO { get; set; }
-        public string PAY_GRADE { get; set; }
+        public string? EMP_NAME { get; set; }
+        public string? PAN_NO { get; set; }
+        public string? BGT_CAT_CODE { get; set; }
+        public string? BANK_AC { get; set; }
+        public string? GPF_NO { get; set; }
+        public string? PAY_GRADE { get; set; }
         public string? DEPTT { get; set; }
-        public string DESIG_CODE { get; set; }
-        public string GIS_NO { get; set; }
-        public string LEVEL_CODE { get; set; }
-        public decimal BASIC_SAL { get; set; }
-        public decimal GRADE_PAY { get; set; }
-        public string PRAN_NO { get; set; }
-        public decimal NET_SAL { get; set; }
-        public string GROUPTY { get; set; }
+        public string? DESIG_CODE { get; set; }
+        public string? DESIG_DESC { get; set; }
+        public string? GIS_NO { get; set; }
+        public string? LEVEL_CODE { get; set; }
+        public decimal? BASIC_SAL { get; set; }
+        public decimal? GRADE_PAY { get; set; }
+        public string? PRAN_NO { get; set; }
+        //public decimal? NET_SAL { get; set; }
+        public string? GROUPTY { get; set; }
 
         // Allowances
+        public decimal? DP { get; set; }
+        public decimal? CCA { get; set; }
+        public decimal? SPL_PAY { get; set; }
+        public decimal? WASHING { get; set; }
+        public decimal? LEAVE_ENCASH { get; set; }
         public decimal? NPA { get; set; }
         public decimal? DA_ON_NPA { get; set; }
         public decimal? TA { get; set; }
@@ -164,6 +171,7 @@
         public decimal? GPF_ADV_DED { get; set; }
         public decimal? GIS_DED { get; set; }
         public decimal? NPS_DED { get; set; }
+        public decimal? NPS_BACK { get; set; }
         public decimal? WATER_ELEC_DED { get; set; }
         public decimal? WATER_DED { get; set; }
         public decimal? TELE_PH_DED { get; set; }
@@ -176,5 +184,32 @@
         public decimal? BUS_DED { get; set; }
         public decimal? CAR_ADV_DED { get; set; }
         public decimal? BENEVOLENT_DED { get; set; }
+        public decimal? GrossDed { get; set; }
+        public decimal? NET_SAL { get; set; }
+        public string? MonthYear
+        {
+            get
+            {
+                if (YR_NO > 0 && MTH_NO > 0)
+                {
+                    return new DateTime(YR_NO, MTH_NO, 1).ToString("MMM-yyyy");
+                }
+                else if (ECODE == "TOTAL")
+                {
+                    return "TOTAL";
+                }
+                return null;
+            }
+        }
+    }
+
+    public class PayslipRequestDto
+    {
+        public int ProcId { get; set; } = 1; // default to GET PAYSLIP
+        public string? ECODE { get; set; }
+        public int StartYR { get; set; }
+        public int StartMTH { get; set; }
+        public int EndYR { get; set; }
+        public int EndMTH { get; set; }
     }
 }
