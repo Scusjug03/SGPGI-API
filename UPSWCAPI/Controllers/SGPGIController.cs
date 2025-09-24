@@ -344,6 +344,36 @@ namespace UPSWCAPI.Controllers
             }
         }
 
+        [HttpGet("GetEmpInfo")]
+        public async Task<IActionResult> GetEmpInfo(string ecode)
+        {
+            try
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@ProcId", 4);         // we are using procId = 1 for payslip
+                parameters.Add("@ECODE", ecode);
+
+                using (var connection = new SqlConnection(Configuration.GetConnectionString("EnquiryCon")))
+                {
+                    var result = await connection.QueryAsync<PayslipDto>(
+                        "Proc_PAYSLIP",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    if (result == null || !result.Any())
+                        return NotFound("No info data found for the given parameters.");
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Error retrieving payslip: {ex.Message}");
+            }
+        }
+
 
 
         #endregion

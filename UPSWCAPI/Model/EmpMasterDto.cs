@@ -63,7 +63,7 @@
         public DateTime? DATE_OF_JOIN { get; set; }
         public DateTime? CONFIRM_DATE { get; set; }
         public DateTime? RETIRE_DATE { get; set; }
-        public int? CategoryId { get; set; } 
+        public int? CategoryId { get; set; }
 
         // Account
         public int? BANKID { get; set; }
@@ -131,9 +131,11 @@
         public string? PAN_NO { get; set; }
         public string? BGT_CAT_CODE { get; set; }
         public string? BANK_AC { get; set; }
+        public DateTime? DATE_OF_JOIN { get; set; }
         public string? GPF_NO { get; set; }
         public string? PAY_GRADE { get; set; }
         public string? DEPTT { get; set; }
+        public string? DEPTT_DESC { get; set; }
         public string? DESIG_CODE { get; set; }
         public string? DESIG_DESC { get; set; }
         public string? GIS_NO { get; set; }
@@ -158,6 +160,8 @@
         public decimal? DEP_ALW { get; set; }
         public decimal? HRA { get; set; }
         public decimal? BOOK_ALW { get; set; }
+        public decimal? TRAINING { get; set; }
+        public decimal? AcdAllow { get; set; }
         public decimal? NURSING { get; set; }
         public decimal? UNIFORM { get; set; }
         public decimal? NEWS_ALW { get; set; }
@@ -172,6 +176,8 @@
         public decimal? GIS_DED { get; set; }
         public decimal? NPS_DED { get; set; }
         public decimal? NPS_BACK { get; set; }
+        public decimal? MEDI_DED { get; set; }
+        public decimal? RENT_DED { get; set; }
         public decimal? WATER_ELEC_DED { get; set; }
         public decimal? WATER_DED { get; set; }
         public decimal? TELE_PH_DED { get; set; }
@@ -184,8 +190,19 @@
         public decimal? BUS_DED { get; set; }
         public decimal? CAR_ADV_DED { get; set; }
         public decimal? BENEVOLENT_DED { get; set; }
+        public decimal? NPSArrear { get; set; }
+        public decimal? ElectricityCharg { get; set; }
+        public decimal? MCARecovery { get; set; }
+        public decimal? NPSCurrent { get; set; }
+        public decimal? TransportDedSelf { get; set; }
+        public decimal? TransportDedDep { get; set; }
+        public decimal? TransportDedRefund { get; set; }
+        public decimal? BUS_REC { get; set; }
+        public decimal? BUS_DEP_DED { get; set; }
         public decimal? GrossDed { get; set; }
         public decimal? NET_SAL { get; set; }
+        public string? scalePay { get; set; }
+        public string? SalDesc { get; set; }
         public string? MonthYear
         {
             get
@@ -212,4 +229,12 @@
         public int EndYR { get; set; }
         public int EndMTH { get; set; }
     }
+
+    public class EmployeeInfo
+    {
+        public string? EMP_NAME { get; set; }
+        public string Designation { get; set; }
+        public string Department { get; set; }
+    }
+
 }
